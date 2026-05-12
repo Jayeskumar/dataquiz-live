@@ -244,14 +244,14 @@ socket.on('room:reveal', (data) => {
   if (total > 0) {
     const correctPct = correctCount / total;
     if (correctPct >= 0.8) {
-      // Class crushed it - mass celebration
+      // Class crushed it
       rosePetalConfetti(50);
-      showHostToast('🔥 Class-uh mass machi!', 'success');
+      showHostToast('🔥 SIX! Class smashed this one!', 'success');
     } else if (correctPct >= 0.5) {
       confetti(40);
-      showHostToast('💪 Solid round!', 'success');
+      showHostToast('💪 Solid batting!', 'success');
     } else if (correctPct === 0) {
-      showHostToast('😭 Avana yaaru? — Yarum correct illa!', 'error');
+      showHostToast('🏏 All bowled out — tough question!', 'error');
     }
   }
 });
@@ -275,7 +275,7 @@ socket.on('room:end', (data) => {
   const podiumEl = document.getElementById('podium');
   const podiumOrder = []; // visual order: 2nd, 1st, 3rd
   if (lb[1]) podiumOrder.push({ p: lb[1], cls: 'second hero-entry', block: 'silver', n: 2, crown: '🥈', label: 'Vice Champion' });
-  if (lb[0]) podiumOrder.push({ p: lb[0], cls: 'first  hero-entry', block: 'gold',   n: 1, crown: '👑', label: 'THALAPATHY' });
+  if (lb[0]) podiumOrder.push({ p: lb[0], cls: 'first  hero-entry', block: 'gold',   n: 1, crown: '👑', label: 'CHAMPION 🏏' });
   if (lb[2]) podiumOrder.push({ p: lb[2], cls: 'third  hero-entry', block: 'bronze', n: 3, crown: '🥉', label: 'Top 3' });
 
   podiumEl.innerHTML = podiumOrder.map(s => `

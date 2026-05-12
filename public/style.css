@@ -1044,6 +1044,26 @@ h1, h2, h3 { font-weight: 800; line-height: 1.2; }
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
   border-color: #f59e0b;
 }
+.reaction-card.cls-rcb {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.25), rgba(127, 29, 29, 0.15));
+  border-color: #dc2626;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.4);
+  position: relative;
+}
+.reaction-card.cls-rcb::after {
+  content: '🏏 RCB 🏏';
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  background: linear-gradient(135deg, #dc2626, #7f1d1d);
+  color: #fde047;
+  font-family: 'Impact', sans-serif;
+  font-size: 0.75em;
+  padding: 4px 10px;
+  border-radius: 12px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+}
 .reaction-emoji {
   font-size: 4.5em;
   display: block;

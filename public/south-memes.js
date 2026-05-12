@@ -4,71 +4,76 @@
 // =====================================================
 
 // ---------- Correct Answer Reactions ----------
+//   Mix of cricket + RCB + light regional flavour (works across Karnataka/TN)
 const CORRECT_REACTIONS = [
+  { emoji: '🏏', text: 'SIX! Maximum! Direct cover drive!', cls: 'rcb' },
+  { emoji: '👑', text: 'Kohli-style answer! King mode ON.', cls: 'rcb' },
+  { emoji: '🏆', text: 'Ee Sala Cup Namde energy! 🇮🇳', cls: 'rcb' },
+  { emoji: '🔴', text: 'Play Bold! RCB approves.', cls: 'rcb' },
   { emoji: '🐐', text: 'GOAT-level answer machi!', cls: 'mass' },
-  { emoji: '👑', text: 'Thalapathy mode activated!', cls: 'mass' },
   { emoji: '🌹', text: 'Pushpa style! Thaggede le!', cls: 'mass' },
-  { emoji: '💪', text: 'Vaathi coming with the right answer!', cls: 'mass' },
-  { emoji: '😎', text: 'Rocky Bhai approves. Vande Mataram!', cls: 'mass' },
-  { emoji: '⚡', text: 'Vera level pa! Sema mass!', cls: 'mass' },
-  { emoji: '🔥', text: 'Single take! Pakka winner!', cls: 'fire' },
-  { emoji: '✨', text: 'Adhae sapavu! Top class machi!', cls: 'sparkle' },
+  { emoji: '😎', text: 'Rocky Bhai approves — Vande Mataram!', cls: 'mass' },
+  { emoji: '⚡', text: 'Bilkul correct! Vera level!', cls: 'mass' },
+  { emoji: '🔥', text: 'Top class machi! Pakka winner.', cls: 'fire' },
+  { emoji: '✨', text: 'Magic da! Champion move.', cls: 'sparkle' },
   { emoji: '💃', text: 'Naatu Naatu winner! 🕺', cls: 'dance' },
-  { emoji: '🦁', text: 'Salaar style! Boss mode ON.', cls: 'mass' },
-  { emoji: '🌟', text: 'Magizhchi! Right answer da!', cls: 'sparkle' },
-  { emoji: '💯', text: 'Pulli vaitha sapadu!', cls: 'mass' },
-  { emoji: '🚀', text: 'Mind voice: Sema correct!', cls: 'fire' },
-  { emoji: '🏆', text: 'Local-uh? Global-uh? Doesn\'t matter — CORRECT!', cls: 'mass' },
-  { emoji: '👏', text: 'Vetri! Yenna scene-ah?', cls: 'sparkle' }
+  { emoji: '🦁', text: 'Boss mode activated.', cls: 'mass' },
+  { emoji: '🌟', text: 'Super maadiddira! Right answer.', cls: 'sparkle' },
+  { emoji: '💯', text: 'Direct boundary! Spot on.', cls: 'rcb' },
+  { emoji: '🚀', text: 'Helicopter shot! Right answer.', cls: 'fire' },
+  { emoji: '🎯', text: 'Bullseye! Stumps shattered!', cls: 'rcb' },
+  { emoji: '👏', text: 'Mass batting! Crowd is on its feet!', cls: 'sparkle' }
 ];
 
 // ---------- Wrong Answer Reactions ----------
+//   Cricket-themed, friendly, no insults
 const WRONG_REACTIONS = [
-  { emoji: '😭', text: 'Avana yaaru? Avana yaaru? 🙆', cls: 'cry' },
-  { emoji: '🤦', text: 'Konjam over-a illa pa idhu?', cls: 'facepalm' },
-  { emoji: '💔', text: 'Enna kodumai sir idhu!', cls: 'cry' },
-  { emoji: '🥲', text: 'Yov... konjam padichirkanum!', cls: 'cry' },
-  { emoji: '😅', text: 'Vadivelu reactions only mode 😬', cls: 'facepalm' },
-  { emoji: '🙃', text: 'Mind voice: \"Yov!\" 🙄', cls: 'facepalm' },
-  { emoji: '🥺', text: 'Daiva is watching... be careful 🙏', cls: 'cry' },
-  { emoji: '🧠', text: 'Padichufy! Try maadi next time!', cls: 'facepalm' },
-  { emoji: '🤔', text: 'Mama, idhu illa pa, vere answer!', cls: 'facepalm' },
-  { emoji: '🥶', text: 'Cold shock-la irundha Soori face', cls: 'cry' },
-  { emoji: '😬', text: 'Idhu konjam local-uh aagidichu', cls: 'facepalm' },
-  { emoji: '🫠', text: 'Senthil-Goundamani confusion 100%', cls: 'cry' }
+  { emoji: '🏏', text: 'OUT! Caught behind. Try again.', cls: 'facepalm' },
+  { emoji: '😅', text: 'LBW! Wrong line of thought.', cls: 'facepalm' },
+  { emoji: '🤔', text: 'Konjam off — back to the crease!', cls: 'facepalm' },
+  { emoji: '🥲', text: 'Net practice maadi pa.', cls: 'cry' },
+  { emoji: '😬', text: 'Edge to slip — review the question.', cls: 'cry' },
+  { emoji: '🙃', text: 'Mind voice: "Re-think machi!"', cls: 'facepalm' },
+  { emoji: '🧠', text: 'Padichu vaa next time, you got this.', cls: 'facepalm' },
+  { emoji: '🥺', text: 'Sweep shot miscalculated. Reset.', cls: 'cry' },
+  { emoji: '🥶', text: 'Bowled out! But hey, it\'s a long innings.', cls: 'cry' },
+  { emoji: '💔', text: 'Run out at the non-striker\'s end.', cls: 'cry' },
+  { emoji: '🤷', text: 'Wrong shot selection — happens to the best.', cls: 'facepalm' },
+  { emoji: '🫠', text: 'Yorker confused you. Watch the ball!', cls: 'facepalm' }
 ];
 
 // ---------- Score-Based Reactions (final) ----------
+//   Friendlier, cricket-framed, no rude lines
 const SCORE_MEMES = [
-  { min: 0,  max: 19,  emoji: '😭', title: 'NAAYEY POTTA NAAYEY',
-    tagline: 'Avana yaaru? Adhuvum padikkala! Time to hit the books, da.',
-    meme: 'cry', color: '#ef4444' },
-  { min: 20, max: 39,  emoji: '🥲', title: 'VADIVELU MODE',
-    tagline: 'Theatres-la flop, library-la hit aagunga! Slowly slowly mass aaganum.',
-    meme: 'cry', color: '#f97316' },
-  { min: 40, max: 59,  emoji: '🤓', title: 'PADIKKURA PAYAN',
-    tagline: 'Konjam more practice pa... aana azhugadhe! You got this energy.',
+  { min: 0,  max: 19,  emoji: '🏏', title: 'BACK TO THE NETS!',
+    tagline: 'Every champion started here machi. Hit the books, watch your form, you\'ll be smashing sixes next time!',
+    meme: 'nets', color: '#3b82f6' },
+  { min: 20, max: 39,  emoji: '🥎', title: 'BUILDING THE INNINGS',
+    tagline: 'Early wickets gone, but the match is long! Stick around, score singles, the boundaries will come.',
+    meme: 'student', color: '#f97316' },
+  { min: 40, max: 59,  emoji: '🏏', title: 'STEADY BATSMAN',
+    tagline: 'Decent strike rate da! Not flashy, but reliable. Now go for the big shots.',
     meme: 'student', color: '#eab308' },
   { min: 60, max: 74,  emoji: '💪', title: 'MASS PLAYER',
-    tagline: 'Vaathi coming with results! Decent mass machi, keep going!',
+    tagline: 'Sixer territory! Solid performance — keep this energy and you\'ll captain the side.',
     meme: 'mass', color: '#84cc16' },
-  { min: 75, max: 89,  emoji: '😎', title: 'ROCKY BHAI APPROVES',
-    tagline: 'Vande Mataram! Solid performance pa! KGF Chapter Pass.',
-    meme: 'bhai', color: '#22c55e' },
-  { min: 90, max: 99,  emoji: '🐐', title: 'PUSHPA RAJ LEVEL',
-    tagline: 'Thaggede le! Bilkul boss energy! Salaam from Mahishmati.',
+  { min: 75, max: 89,  emoji: '😎', title: 'KOHLI APPROVES',
+    tagline: 'Cover drive perfection! Bilkul boss-level batting. RCB top order material.',
+    meme: 'rcb', color: '#22c55e' },
+  { min: 90, max: 99,  emoji: '🐐', title: 'PLAY BOLD CHAMPION',
+    tagline: 'You played bold! Bilkul top class energy. Ee sala cup vibes 🏆',
     meme: 'pushpa', color: '#06b6d4' },
-  { min: 100,max: 100, emoji: '👑', title: 'THALAPATHY MODE 👑',
-    tagline: 'You\'re THE GOAT of this class! Single take. Mass entry. Perfect game.',
-    meme: 'thalapathy', color: '#fbbf24' }
+  { min: 100,max: 100, emoji: '🏆', title: 'EE SALA CUP NAMDE! 👑',
+    tagline: 'CHAMPION OF CHAMPIONS! You won this like RCB 2025 — pure dominance, no questions asked.',
+    meme: 'cup', color: '#fbbf24' }
 ];
 
 // ---------- Streak Combo Effects ----------
 const COMBO_EFFECTS = [
-  { min: 3,  max: 4,  text: 'MASS COMBO 🔥', color: '#f97316' },
-  { min: 5,  max: 6,  text: 'VERA LEVEL ⚡', color: '#06b6d4' },
+  { min: 3,  max: 4,  text: 'BACK-TO-BACK BOUNDARIES 🏏', color: '#f97316' },
+  { min: 5,  max: 6,  text: 'HAT-TRICK! 🔥', color: '#06b6d4' },
   { min: 7,  max: 9,  text: 'GOAT MODE 🐐', color: '#a855f7' },
-  { min: 10, max: 99, text: 'UNSTOPPABLE 👑', color: '#fbbf24' }
+  { min: 10, max: 99, text: 'CENTURY UNSTOPPABLE 💯', color: '#fbbf24' }
 ];
 
 function pickCorrect()  { return CORRECT_REACTIONS[Math.floor(Math.random() * CORRECT_REACTIONS.length)]; }
@@ -329,27 +334,163 @@ const SI_SVG = {
     <text x="100" y="210" text-anchor="middle" font-family="Impact" font-size="14" fill="#7c2d12" font-weight="bold">VAATHI COMING</text>
   </svg>`,
 
-  // Student / padikkura payan
+  // Student / batsman building innings
   student: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
     <rect width="200" height="220" fill="#dbeafe"/>
-    <!-- Book stack -->
-    <rect x="40" y="170" width="50" height="10" fill="#dc2626"/>
-    <rect x="42" y="160" width="46" height="10" fill="#3b82f6"/>
-    <rect x="44" y="150" width="42" height="10" fill="#22c55e"/>
+    <!-- Pitch lines -->
+    <line x1="0" y1="180" x2="200" y2="180" stroke="#84cc16" stroke-width="3" opacity="0.4"/>
+    <!-- Head with helmet -->
+    <circle cx="100" cy="90" r="32" fill="#fde68a"/>
+    <path d="M 70 85 Q 100 55 130 85 L 130 95 L 70 95 Z" fill="#1e40af"/>
+    <rect x="72" y="92" width="56" height="4" fill="#1e40af"/>
+    <!-- Helmet grille -->
+    <line x1="78" y1="95" x2="78" y2="105" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="88" y1="95" x2="88" y2="108" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="100" y1="95" x2="100" y2="110" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="112" y1="95" x2="112" y2="108" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="122" y1="95" x2="122" y2="105" stroke="#1a1a1a" stroke-width="1"/>
+    <!-- Eye -->
+    <circle cx="100" cy="100" r="2" fill="#1a1a1a"/>
+    <!-- Body in jersey -->
+    <rect x="80" y="120" width="40" height="50" fill="#3b82f6"/>
+    <text x="100" y="148" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">18</text>
+    <!-- Bat -->
+    <rect x="140" y="110" width="8" height="60" rx="2" fill="#92400e"/>
+    <rect x="138" y="105" width="12" height="10" fill="#5d4037"/>
+    <!-- Pads -->
+    <rect x="80" y="170" width="18" height="20" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+    <rect x="102" y="170" width="18" height="20" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+    <text x="100" y="210" text-anchor="middle" font-family="Impact" font-size="13" fill="#1e40af" font-weight="bold">BUILD YOUR INNINGS</text>
+  </svg>`,
+
+  // Back to the nets — bat + ball + stumps illustration
+  nets: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="220" fill="#e0f2fe"/>
+    <!-- Net mesh background -->
+    <g stroke="#94a3b8" stroke-width="0.5" opacity="0.6">
+      <line x1="0" y1="40" x2="200" y2="40"/>
+      <line x1="0" y1="80" x2="200" y2="80"/>
+      <line x1="0" y1="120" x2="200" y2="120"/>
+      <line x1="0" y1="160" x2="200" y2="160"/>
+      <line x1="40" y1="0" x2="40" y2="200"/>
+      <line x1="80" y1="0" x2="80" y2="200"/>
+      <line x1="120" y1="0" x2="120" y2="200"/>
+      <line x1="160" y1="0" x2="160" y2="200"/>
+    </g>
+    <!-- Stumps -->
+    <rect x="65" y="80" width="6" height="80" fill="#92400e"/>
+    <rect x="80" y="80" width="6" height="80" fill="#92400e"/>
+    <rect x="95" y="80" width="6" height="80" fill="#92400e"/>
+    <!-- Bails -->
+    <rect x="63" y="76" width="22" height="4" fill="#5d4037"/>
+    <rect x="78" y="76" width="22" height="4" fill="#5d4037"/>
+    <!-- Bat (raised, hitting position) -->
+    <g transform="translate(140 100) rotate(-30)">
+      <rect x="-5" y="-35" width="10" height="55" fill="#92400e" rx="2"/>
+      <rect x="-7" y="-45" width="14" height="12" fill="#5d4037"/>
+    </g>
+    <!-- Cricket ball -->
+    <circle cx="155" cy="140" r="10" fill="#dc2626"/>
+    <path d="M 145 140 Q 155 135 165 140" stroke="#fff" stroke-width="1" fill="none"/>
+    <path d="M 145 140 Q 155 145 165 140" stroke="#fff" stroke-width="1" fill="none"/>
+    <text x="100" y="200" text-anchor="middle" font-family="Impact" font-size="14" fill="#1e40af" font-weight="bold">NET PRACTICE TIME</text>
+  </svg>`,
+
+  // RCB — King Kohli pose with red/black/gold
+  rcb: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="rcb-bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a0a0a"/>
+        <stop offset="100%" stop-color="#7f1d1d"/>
+      </linearGradient>
+      <linearGradient id="rcb-jersey" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#dc2626"/>
+        <stop offset="100%" stop-color="#7f1d1d"/>
+      </linearGradient>
+      <linearGradient id="rcb-gold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fde047"/>
+        <stop offset="100%" stop-color="#a16207"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="220" fill="url(#rcb-bg)"/>
+    <!-- Sun rays -->
+    <g stroke="url(#rcb-gold)" stroke-width="1" opacity="0.6">
+      <line x1="100" y1="110" x2="0" y2="20"/>
+      <line x1="100" y1="110" x2="200" y2="20"/>
+      <line x1="100" y1="110" x2="0" y2="200"/>
+      <line x1="100" y1="110" x2="200" y2="200"/>
+      <line x1="100" y1="110" x2="0" y2="110"/>
+      <line x1="100" y1="110" x2="200" y2="110"/>
+    </g>
     <!-- Head -->
-    <circle cx="120" cy="100" r="38" fill="#fde68a"/>
-    <!-- Glasses -->
-    <rect x="100" y="92" width="40" height="14" rx="6" fill="none" stroke="#1a1a1a" stroke-width="3"/>
-    <line x1="120" y1="99" x2="120" y2="99" stroke="#1a1a1a" stroke-width="2"/>
-    <circle cx="110" cy="99" r="5" fill="#fff"/>
-    <circle cx="130" cy="99" r="5" fill="#fff"/>
+    <circle cx="100" cy="80" r="28" fill="#a16207"/>
+    <!-- Beard -->
+    <path d="M 80 90 Q 100 105 120 90 Q 110 100 100 100 Q 90 100 80 90 Z" fill="#1a1a1a"/>
+    <!-- Hair -->
+    <path d="M 75 65 Q 100 50 125 65 Q 120 55 100 52 Q 80 55 75 65 Z" fill="#1a1a1a"/>
+    <!-- Eyes -->
+    <circle cx="92" cy="78" r="2" fill="#1a1a1a"/>
+    <circle cx="108" cy="78" r="2" fill="#1a1a1a"/>
     <!-- Smile -->
-    <path d="M 105 120 Q 120 130 135 120" stroke="#1a1a1a" stroke-width="2.5" fill="none"/>
-    <!-- Body -->
-    <rect x="95" y="135" width="50" height="50" fill="#3b82f6"/>
-    <!-- Tie -->
-    <polygon points="120,135 115,155 120,180 125,155" fill="#dc2626"/>
-    <text x="100" y="210" text-anchor="middle" font-family="Impact" font-size="14" fill="#1e40af" font-weight="bold">PADIKKURA PAYAN</text>
+    <path d="M 92 92 Q 100 96 108 92" stroke="#1a1a1a" stroke-width="1.5" fill="none"/>
+    <!-- Jersey -->
+    <path d="M 70 110 L 60 130 L 60 200 L 140 200 L 140 130 L 130 110 Q 115 115 100 115 Q 85 115 70 110 Z" fill="url(#rcb-jersey)"/>
+    <!-- Jersey number 18 (Kohli) -->
+    <text x="100" y="170" text-anchor="middle" font-family="Impact" font-size="34" font-weight="bold" fill="url(#rcb-gold)">18</text>
+    <!-- RCB logo style at top -->
+    <text x="100" y="125" text-anchor="middle" font-size="9" fill="#fde047" font-weight="bold">RCB</text>
+    <!-- Sleeve trim -->
+    <rect x="60" y="125" width="80" height="3" fill="url(#rcb-gold)"/>
+    <text x="100" y="216" text-anchor="middle" font-family="Impact" font-size="11" fill="#fde047" font-weight="bold">PLAY BOLD</text>
+  </svg>`,
+
+  // Championship cup — for 100% scorer
+  cup: `<svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="cup-gold" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fde047"/>
+        <stop offset="50%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#a16207"/>
+      </linearGradient>
+      <radialGradient id="cup-glow">
+        <stop offset="0%" stop-color="#fde047" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#fde047" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="200" height="220" fill="#0a0a0a"/>
+    <!-- Glow -->
+    <circle cx="100" cy="100" r="100" fill="url(#cup-glow)"/>
+    <!-- Sun rays -->
+    <g stroke="url(#cup-gold)" stroke-width="2" opacity="0.6">
+      <line x1="100" y1="100" x2="0" y2="0"/>
+      <line x1="100" y1="100" x2="200" y2="0"/>
+      <line x1="100" y1="100" x2="0" y2="200"/>
+      <line x1="100" y1="100" x2="200" y2="200"/>
+      <line x1="100" y1="100" x2="0" y2="100"/>
+      <line x1="100" y1="100" x2="200" y2="100"/>
+      <line x1="100" y1="100" x2="100" y2="0"/>
+      <line x1="100" y1="100" x2="100" y2="200"/>
+    </g>
+    <!-- Confetti dots -->
+    <circle cx="30" cy="40" r="3" fill="#dc2626"/>
+    <circle cx="170" cy="50" r="3" fill="#fbbf24"/>
+    <circle cx="45" cy="170" r="3" fill="#06b6d4"/>
+    <circle cx="160" cy="180" r="3" fill="#a855f7"/>
+    <circle cx="20" cy="110" r="2.5" fill="#22c55e"/>
+    <circle cx="185" cy="120" r="2.5" fill="#ec4899"/>
+    <!-- Cup body -->
+    <path d="M 70 50 Q 70 120 80 130 L 120 130 Q 130 120 130 50 Z" fill="url(#cup-gold)" stroke="#7c2d12" stroke-width="2"/>
+    <!-- Cup handles -->
+    <path d="M 70 60 Q 50 60 50 80 Q 50 100 70 100" stroke="url(#cup-gold)" stroke-width="6" fill="none"/>
+    <path d="M 130 60 Q 150 60 150 80 Q 150 100 130 100" stroke="url(#cup-gold)" stroke-width="6" fill="none"/>
+    <!-- Cup base -->
+    <rect x="85" y="130" width="30" height="10" fill="url(#cup-gold)" stroke="#7c2d12" stroke-width="1"/>
+    <rect x="75" y="140" width="50" height="15" fill="url(#cup-gold)" stroke="#7c2d12" stroke-width="2" rx="2"/>
+    <!-- Star on cup -->
+    <text x="100" y="100" text-anchor="middle" font-size="40" fill="#7c2d12">★</text>
+    <!-- Text -->
+    <text x="100" y="180" text-anchor="middle" font-family="Impact" font-size="14" fill="#fde047" font-weight="bold">EE SALA CUP</text>
+    <text x="100" y="196" text-anchor="middle" font-family="Impact" font-size="14" fill="#fde047" font-weight="bold">NAMDE!</text>
   </svg>`
 };
 
