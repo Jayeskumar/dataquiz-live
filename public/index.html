@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataQuiz Live · Classroom Multiplayer</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="center-flex">
+  <div style="max-width: 900px; width: 100%;">
+
+    <div style="text-align: center; margin-bottom: 40px;" class="fade-in">
+      <div style="font-size: 5em; margin-bottom: 10px;">🎮</div>
+      <h1 style="font-size: 3.5em; margin-bottom: 10px;">
+        <span class="gradient-text">DataQuiz Live</span>
+      </h1>
+      <p style="font-size: 1.3em; color: var(--text-muted);">
+        Real-time multiplayer trivia for the classroom
+      </p>
+      <p style="opacity: 0.7; margin-top: 8px;">
+        📺 Project to the big screen · 📱 Students play on their phones · 🏆 Live leaderboard
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;" class="fade-in" id="choices">
+
+      <div class="card" style="text-align: center; cursor: pointer; transition: transform 0.3s;"
+           onmouseover="this.style.transform='translateY(-8px)'"
+           onmouseout="this.style.transform='translateY(0)'"
+           onclick="goHost()">
+        <div style="font-size: 5em; margin-bottom: 15px;">🎓</div>
+        <h2 style="font-size: 1.8em; margin-bottom: 12px;">Host a Game</h2>
+        <p style="color: var(--text-muted); margin-bottom: 22px;">
+          You're the teacher. Pick a module, share the code, project it.
+        </p>
+        <button class="btn btn-primary btn-xl btn-block">Create Room →</button>
+      </div>
+
+      <div class="card" style="text-align: center;">
+        <div style="font-size: 5em; margin-bottom: 15px;">🎯</div>
+        <h2 style="font-size: 1.8em; margin-bottom: 12px;">Join a Game</h2>
+        <p style="color: var(--text-muted); margin-bottom: 18px;">
+          Got a game code? Enter it below.
+        </p>
+        <input class="input big" id="joinCode" placeholder="PANDA-42" maxlength="10">
+        <input class="input" id="joinName" placeholder="Your name" maxlength="20" style="margin-top:10px;">
+        <button class="btn btn-success btn-xl btn-block" style="margin-top:14px;" onclick="goJoin()">Join Game →</button>
+      </div>
+
+    </div>
+
+    <div style="margin-top: 50px; text-align: center; opacity: 0.6;">
+      <p style="font-size: 0.9em;">
+        Built for the Data Analysis Mastery Course · No installation needed · Works on any device
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || '');
+  t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function goHost() {
+  window.location.href = '/host.html';
+}
+
+function goJoin() {
+  const code = document.getElementById('joinCode').value.trim().toUpperCase();
+  const name = document.getElementById('joinName').value.trim();
+  if (!code) return showToast('Enter the game code', 'error');
+  if (!name) return showToast('Enter your name', 'error');
+  // Stash & redirect
+  sessionStorage.setItem('dq_code', code);
+  sessionStorage.setItem('dq_name', name);
+  window.location.href = '/player.html';
+}
+
+// Auto-fill code from query string ?code=XXX (for QR sharing)
+const params = new URLSearchParams(window.location.search);
+const codeParam = params.get('code');
+if (codeParam) document.getElementById('joinCode').value = codeParam.toUpperCase();
+
+// Enter to join
+document.getElementById('joinName').addEventListener('keypress', e => {
+  if (e.key === 'Enter') goJoin();
+});
+
+// Particles
+function initParticles() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random() * 60 + 20;
+    p.style.width = s + 'px';
+    p.style.height = s + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    c.appendChild(p);
+  }
+}
+initParticles();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "dataquiz-multiplayer",
+  "version": "1.0.0",
+  "description": "Real-time multiplayer quiz game for classrooms — like Kahoot, for data analysis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "quiz",
+    "multiplayer",
+    "classroom",
+    "kahoot",
+    "data-analysis",
+    "education"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.1",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}

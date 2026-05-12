@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Player · DataQuiz Live</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<!-- Top bar (visible during game) -->
+<div id="topbar" style="display:none; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(10px);">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <div style="font-size: 0.75em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Player</div>
+      <div style="font-weight: 800;" id="topbarName">—</div>
+    </div>
+    <div style="text-align: right;">
+      <div style="font-size: 0.75em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Score</div>
+      <div style="font-weight: 900; font-size: 1.4em;" id="topbarScore">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== JOINING ============== -->
+<section id="screenJoining" class="screen-section">
+  <div class="center-flex">
+    <div class="card" style="max-width: 500px; width: 100%; text-align: center;">
+      <div style="font-size: 5em; margin-bottom: 15px;">🎯</div>
+      <h1 style="font-size: 2em; margin-bottom: 8px;">Join Game</h1>
+      <p style="color: var(--text-muted); margin-bottom: 25px;">Enter the room code shown on the screen</p>
+
+      <input class="input big" id="codeInput" placeholder="PANDA-42" maxlength="10">
+      <input class="input" id="nameInput" placeholder="Your name" maxlength="20" style="margin-top:12px;">
+      <button class="btn btn-primary btn-xl btn-block" style="margin-top:14px;" onclick="join()">Join Game →</button>
+      <div style="margin-top: 15px;">
+        <a href="/" style="color: var(--text-muted); text-decoration: none;">← Back</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== WAITING (joined, lobby) ============== -->
+<section id="screenWaiting" class="screen-section" style="display:none">
+  <div class="player-wait">
+    <div class="big-icon">✨</div>
+    <h2>You're in!</h2>
+    <p>Hi <strong id="welcomeName" style="color: var(--text);">player</strong> — waiting for the host to start...</p>
+    <div style="margin-top: 30px; padding: 20px; background: var(--surface); border-radius: 12px;">
+      <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px;">Room Code</div>
+      <div style="font-family: monospace; font-size: 2em; font-weight: 900; letter-spacing: 4px;" id="waitingCode">PANDA-42</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== ANSWER (question active) ============== -->
+<section id="screenAnswer" class="screen-section" style="display:none">
+  <div style="padding: 20px; min-height: calc(100vh - 70px); display: flex; flex-direction: column;">
+
+    <div style="text-align: center; padding: 20px 0;">
+      <div style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 5px;">
+        Question <span id="aProgress">1 / 10</span>
+      </div>
+      <div class="timer-ring" style="margin: 0 auto;">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" cx="50" cy="50" r="45"
+                  stroke-dasharray="283" stroke-dashoffset="0" id="pRingFg"/>
+        </svg>
+        <div class="ring-text" id="pRingText">20</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; padding: 10px 0 20px; color: var(--text-muted); font-size: 0.95em;">
+      Look at the projector screen for the question.<br>
+      <strong>Tap your answer below ↓</strong>
+    </div>
+
+    <div class="answer-grid" id="pAnswers" style="flex: 1;"></div>
+  </div>
+</section>
+
+<!-- ============== WAIT FOR REVEAL ============== -->
+<section id="screenAnswered" class="screen-section" style="display:none">
+  <div class="player-wait">
+    <div class="big-icon">⏳</div>
+    <h2>Answer locked in!</h2>
+    <p>Waiting for everyone else to finish...</p>
+    <div style="margin-top: 25px; padding: 20px; background: var(--surface); border-radius: 12px;">
+      <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px;">Your answer</div>
+      <div id="yourAnswer" style="font-weight: 800; font-size: 1.4em;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== RESULT (per-question) ============== -->
+<section id="screenResult" class="screen-section" style="display:none">
+  <div class="player-result">
+    <div class="big-emoji" id="resultEmoji">🎉</div>
+    <div class="verdict correct" id="resultVerdict">Correct!</div>
+    <div class="points-earned positive" id="pointsEarned">+850</div>
+    <div class="total">Total: <strong id="totalScore">0</strong></div>
+    <p style="margin-top: 30px; color: var(--text-muted); font-size: 0.95em;">
+      Look at the projector for the leaderboard...
+    </p>
+  </div>
+</section>
+
+<!-- ============== FINAL ============== -->
+<section id="screenFinal" class="screen-section" style="display:none">
+  <div class="player-result">
+    <div class="big-emoji" id="finalEmoji">🏆</div>
+    <h1 style="font-size: 2.2em; margin-bottom: 12px;" id="finalTitle">Game Over!</h1>
+    <p style="font-size: 1.2em; color: var(--text-muted); margin-bottom: 25px;">
+      Your rank: <strong style="color: var(--text); font-size: 1.5em;" id="finalRank">#1</strong>
+    </p>
+    <div class="points-earned positive" id="finalScore">0</div>
+    <p style="color: var(--text-muted);">total points</p>
+
+    <button class="btn btn-primary btn-xl" style="margin-top: 30px;" onclick="window.location.href='/'">
+      🏠 Back Home
+    </button>
+  </div>
+</section>
+
+<!-- ============== KICKED ============== -->
+<section id="screenKicked" class="screen-section" style="display:none">
+  <div class="player-wait">
+    <div class="big-icon">🚪</div>
+    <h2>Removed from game</h2>
+    <p>The host has removed you from the game.</p>
+    <button class="btn btn-secondary" style="margin-top: 20px;" onclick="window.location.href='/'">
+      ← Back Home
+    </button>
+  </div>
+</section>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="toast-container" id="toasts"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="player.js"></script>
+
+</body>
+</html>

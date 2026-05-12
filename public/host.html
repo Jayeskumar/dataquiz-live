@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Host · DataQuiz Live</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<!-- ============== SCREEN 1: SETUP ============== -->
+<section id="screenSetup" class="screen-section">
+  <div class="center-flex">
+    <div class="card" style="max-width: 800px; width: 100%;">
+      <h1 style="text-align:center; font-size: 2.5em; margin-bottom: 10px;">
+        🎓 Host a Game
+      </h1>
+      <p style="text-align:center; color: var(--text-muted); margin-bottom: 30px;">
+        Pick a topic and game settings, then share the room code with the class
+      </p>
+
+      <h3 style="margin-bottom: 12px;">Topic</h3>
+      <div class="module-grid" id="moduleGrid"></div>
+
+      <div class="settings-row">
+        <div class="setting-block">
+          <label>Number of Questions</label>
+          <select id="settingCount">
+            <option value="5">5 questions (~3 min)</option>
+            <option value="10" selected>10 questions (~6 min)</option>
+            <option value="15">15 questions (~9 min)</option>
+            <option value="20">20 questions (~12 min)</option>
+          </select>
+        </div>
+        <div class="setting-block">
+          <label>Time per question</label>
+          <select id="settingTimer">
+            <option value="15">15 seconds (fast)</option>
+            <option value="20" selected>20 seconds (normal)</option>
+            <option value="30">30 seconds (relaxed)</option>
+            <option value="45">45 seconds (extra time)</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-xl btn-block" onclick="createRoom()">
+        🚀 Create Room
+      </button>
+      <div style="text-align:center; margin-top: 15px;">
+        <a href="/" style="color: var(--text-muted); text-decoration: none;">← Back</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SCREEN 2: LOBBY ============== -->
+<section id="screenLobby" class="screen-section" style="display:none">
+  <div class="container" style="max-width: 1100px;">
+
+    <div style="text-align: center; margin-bottom: 20px;" class="fade-in">
+      <p style="font-size: 1.4em; color: var(--text-muted); margin-bottom: 5px;">Tell students to go to</p>
+      <p style="font-size: 1.8em; font-weight: 800;" id="joinUrlText">localhost:3000</p>
+      <p style="font-size: 1.4em; color: var(--text-muted); margin-top: 15px;">and enter game code</p>
+      <div class="lobby-code" id="lobbyCode">PANDA-42</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 320px; gap: 30px;" id="lobbyLayout">
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:15px;">
+          <h2 style="font-size: 1.5em;">Players</h2>
+          <div class="player-count">
+            <span id="playerCount">0</span> joined
+          </div>
+        </div>
+        <div class="players-list" id="playersList"></div>
+        <div id="emptyPlayers" style="text-align:center; padding:40px; color: var(--text-muted);">
+          Waiting for players to join...
+        </div>
+      </div>
+
+      <div>
+        <div class="qr-area" style="display:block; text-align:center;">
+          <div id="qrcode"></div>
+          <p style="color: #444; margin-top: 10px; font-size: 0.9em; font-weight: 600;">
+            Scan to join
+          </p>
+        </div>
+
+        <button class="btn btn-primary btn-xl btn-block" id="startBtn" onclick="startGame()" style="margin-top: 20px;" disabled>
+          ▶ Start Game
+        </button>
+        <button class="btn btn-secondary btn-block" onclick="window.location.reload()" style="margin-top: 10px;">
+          ✖ Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============== SCREEN 3: QUESTION ============== -->
+<section id="screenQuestion" class="screen-section" style="display:none">
+  <div class="container" style="max-width: 1200px;">
+
+    <div class="q-header">
+      <div class="q-meta">
+        <span class="tag module" id="qModule">Module</span>
+        <span class="tag difficulty easy" id="qDifficulty">Easy</span>
+      </div>
+      <div class="q-progress" id="qProgress">1 / 10</div>
+      <div class="timer-ring">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring-bg" cx="50" cy="50" r="45"/>
+          <circle class="ring-fg" cx="50" cy="50" r="45"
+                  stroke-dasharray="283" stroke-dashoffset="0" id="ringFg"/>
+        </svg>
+        <div class="ring-text" id="ringText">20</div>
+      </div>
+    </div>
+
+    <div class="question-text large" id="qText">Question</div>
+    <pre class="question-code-block" id="qCode" style="display:none"></pre>
+
+    <div class="answer-grid" id="qAnswers"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; flex-wrap: wrap; gap: 15px;">
+      <div style="background: var(--surface); padding: 10px 18px; border-radius: 10px; font-weight: 700;">
+        <span id="answeredCount">0</span> / <span id="answeredTotal">0</span> answered
+      </div>
+      <button class="btn btn-warm" onclick="forceReveal()">
+        Reveal Now ↓
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SCREEN 4: REVEAL ============== -->
+<section id="screenReveal" class="screen-section" style="display:none">
+  <div class="container" style="max-width: 1200px;">
+
+    <div class="q-header">
+      <div class="q-meta">
+        <span class="tag module" id="rModule">Module</span>
+      </div>
+      <div class="q-progress" id="rProgress">1 / 10</div>
+    </div>
+
+    <div class="question-text" id="rText">Question</div>
+
+    <div class="vote-bar-grid" id="rVoteBars"></div>
+
+    <div style="background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 20px; margin-top: 25px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <span style="font-size: 1.5em;">💡</span>
+        <strong>Explanation</strong>
+      </div>
+      <p id="rExplanation" style="color: var(--text-muted);"></p>
+    </div>
+
+    <div class="leaderboard" id="revealLeaderboard"></div>
+
+    <div style="text-align: center; margin-top: 30px;">
+      <button class="btn btn-primary btn-xl" id="nextBtn" onclick="nextQuestion()">
+        Next Question →
+      </button>
+      <button class="btn btn-danger" onclick="endGame()" style="margin-left: 10px;">
+        End Game
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SCREEN 5: FINAL ============== -->
+<section id="screenFinal" class="screen-section" style="display:none">
+  <div class="podium-stage container">
+    <h1 class="gradient-text">🏆 Final Results</h1>
+    <p style="font-size: 1.2em; color: var(--text-muted); margin-bottom: 30px;">
+      Great game everyone!
+    </p>
+
+    <div class="podium" id="podium"></div>
+    <div class="leaderboard" id="finalLeaderboard"></div>
+
+    <div style="margin-top: 40px;">
+      <button class="btn btn-primary btn-xl" onclick="window.location.reload()">
+        🔁 New Game
+      </button>
+      <button class="btn btn-secondary" onclick="window.location.href='/'" style="margin-left:10px;">
+        🏠 Home
+      </button>
+    </div>
+  </div>
+</section>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="toast-container" id="toasts"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="host.js"></script>
+
+</body>
+</html>
