@@ -99,6 +99,8 @@ socket.on('room:question', (q) => {
   showScreen('screenAnswer');
 });
 
+let myStreak = 0;
+
 socket.on('player:result', (res) => {
   stopTimer();
   myScore = res.score;
@@ -108,56 +110,108 @@ socket.on('player:result', (res) => {
   const verdict = document.getElementById('resultVerdict');
   const emoji = document.getElementById('resultEmoji');
   const pts = document.getElementById('pointsEarned');
+  const reactionCard = document.getElementById('reactionCard');
+  const reactionEmoji = document.getElementById('reactionEmoji');
+  const reactionText = document.getElementById('reactionText');
+
+  // Reset animation classes by re-applying
+  [emoji, verdict, pts].forEach(el => {
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+  });
 
   if (res.isCorrect) {
+    myStreak++;
     verdict.textContent = 'Correct! ✓';
-    verdict.className = 'verdict correct';
-    emoji.textContent = randomFrom(['🎉', '🚀', '⚡', '🔥', '🧠', '💯', '✨', '👑']);
+    verdict.className = 'verdict correct punch-dialogue';
     pts.textContent = '+' + res.lastPoints;
-    pts.className = 'points-earned positive';
-    confetti(40);
+    pts.className = 'points-earned positive mass-entry';
+
+    // South Indian reaction
+    const reaction = window.SI_MEMES.pickCorrect();
+    emoji.textContent = reaction.emoji;
+    emoji.className = 'big-emoji punch-dialogue';
+    reactionEmoji.textContent = reaction.emoji;
+    reactionText.textContent = reaction.text;
+    reactionCard.className = `reaction-card cls-${reaction.cls} mass-entry`;
+    reactionCard.style.display = 'block';
+
+    // Streak combo banner
+    const combo = window.SI_MEMES.pickCombo(myStreak);
+    if (combo) showComboBanner(combo);
+
+    // Effects
+    rosePetalConfetti(60);
+    document.body.classList.add('bullet-time');
+    setTimeout(() => document.body.classList.remove('bullet-time'), 1200);
     playSound('correct');
   } else {
+    myStreak = 0;
     verdict.textContent = 'Not this time';
-    verdict.className = 'verdict wrong';
-    emoji.textContent = randomFrom(['😅', '🤔', '🙃', '💀', '📚', '🔄']);
+    verdict.className = 'verdict wrong punch-dialogue';
+
+    const reaction = window.SI_MEMES.pickWrong();
+    emoji.textContent = reaction.emoji;
+    emoji.className = 'big-emoji punch-dialogue';
+    reactionEmoji.textContent = reaction.emoji;
+    reactionText.textContent = reaction.text;
+    reactionCard.className = `reaction-card cls-${reaction.cls} mass-entry`;
+    reactionCard.style.display = 'block';
+
     if (myAnswer === null) {
-      pts.textContent = 'Too slow';
-      pts.className = 'points-earned';
+      pts.textContent = 'Too slow!';
     } else {
       pts.textContent = '0 points';
-      pts.className = 'points-earned';
     }
+    pts.className = 'points-earned';
     playSound('wrong');
+    document.body.classList.add('vibrate');
+    setTimeout(() => document.body.classList.remove('vibrate'), 450);
   }
   showScreen('screenResult');
 });
+
+function showComboBanner(combo) {
+  const existing = document.querySelector('.combo-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.className = 'combo-banner';
+  banner.textContent = combo.text;
+  banner.style.background = `linear-gradient(135deg, ${combo.color}, var(--mass-gold))`;
+  document.body.appendChild(banner);
+  playSound('combo');
+  setTimeout(() => banner.remove(), 2200);
+}
 
 socket.on('room:end', (data) => {
   const me = data.leaderboard.find(p => p.name === myName);
   const rank = me?.rank ?? '—';
   const score = me?.score ?? myScore;
+  const totalPlayers = data.leaderboard.length || 1;
+  const pct = Math.round(((totalPlayers - rank + 1) / totalPlayers) * 100);
+
   document.getElementById('finalRank').textContent = '#' + rank;
   document.getElementById('finalScore').textContent = score;
 
-  const title = document.getElementById('finalTitle');
-  const emoji = document.getElementById('finalEmoji');
+  // Score-based south indian meme
+  const scoreMeme = window.SI_MEMES.pickScore(pct);
+  document.getElementById('finalTitle').textContent = scoreMeme.title;
+  document.getElementById('finalTagline').textContent = scoreMeme.tagline;
+  document.getElementById('finalMemeImg').innerHTML = window.SI_MEMES.SVG[scoreMeme.meme] || '';
+
+  // Effects based on rank
   if (rank === 1) {
-    title.textContent = '🥇 You won!';
-    emoji.textContent = '👑';
     bigConfetti();
+    rosePetalConfetti(120);
     playSound('win');
+    document.body.classList.add('screen-shake');
+    setTimeout(() => document.body.classList.remove('screen-shake'), 600);
   } else if (rank === 2) {
-    title.textContent = '🥈 So close!';
-    emoji.textContent = '🥈';
     confetti(80);
+    rosePetalConfetti(60);
   } else if (rank === 3) {
-    title.textContent = '🥉 Top 3!';
-    emoji.textContent = '🥉';
     confetti(40);
-  } else {
-    title.textContent = 'Game Over!';
-    emoji.textContent = '🎮';
   }
 
   showScreen('screenFinal');
@@ -250,8 +304,72 @@ function playSound(type) {
         gg.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
         oo.start(now + i * 0.1); oo.stop(now + i * 0.1 + 0.3);
       });
+    } else if (type === 'combo') {
+      // Cinematic punch: low boom + high sparkle
+      [200, 250, 600, 800].forEach((f, i) => {
+        const oo = audioCtx.createOscillator();
+        const gg = audioCtx.createGain();
+        oo.connect(gg); gg.connect(audioCtx.destination);
+        oo.type = i < 2 ? 'sawtooth' : 'sine';
+        oo.frequency.setValueAtTime(f, now + i * 0.05);
+        gg.gain.setValueAtTime(0.12, now + i * 0.05);
+        gg.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.4);
+        oo.start(now + i * 0.05); oo.stop(now + i * 0.05 + 0.4);
+      });
     }
   } catch (e) {}
+}
+
+// Rose petal confetti - South Indian mass-style
+function rosePetalConfetti(n) {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#dc2626', '#b91c1c', '#991b1b', '#7c2d12', '#ef4444'];
+  const ps = [];
+  for (let i = 0; i < (n || 60); i++) {
+    ps.push({
+      x: Math.random() * canvas.width,
+      y: -20,
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 1.5,
+      size: Math.random() * 8 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * 360,
+      rs: (Math.random() - 0.5) * 6,
+      sway: Math.random() * 2 + 1,
+      swayPhase: Math.random() * Math.PI * 2,
+      life: 300
+    });
+  }
+  function drawPetal(ctx, x, y, size, rot, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot * Math.PI / 180);
+    const grad = ctx.createLinearGradient(0, -size, 0, size);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, '#7c2d12');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.5, size * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  function step() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ps.forEach((p, i) => {
+      p.x += p.vx + Math.sin(p.swayPhase) * p.sway;
+      p.y += p.vy;
+      p.swayPhase += 0.05;
+      p.rot += p.rs;
+      p.life--;
+      drawPetal(ctx, p.x, p.y, p.size, p.rot, p.color);
+      if (p.life <= 0 || p.y > canvas.height + 20) ps.splice(i, 1);
+    });
+    if (ps.length > 0) requestAnimationFrame(step);
+  }
+  step();
 }
 
 function confetti(n) {

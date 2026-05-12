@@ -99,11 +99,18 @@
 <!-- ============== RESULT (per-question) ============== -->
 <section id="screenResult" class="screen-section" style="display:none">
   <div class="player-result">
-    <div class="big-emoji" id="resultEmoji">🎉</div>
-    <div class="verdict correct" id="resultVerdict">Correct!</div>
-    <div class="points-earned positive" id="pointsEarned">+850</div>
+    <div class="big-emoji punch-dialogue" id="resultEmoji">🎉</div>
+    <div class="verdict correct punch-dialogue" id="resultVerdict">Correct!</div>
+    <div class="points-earned positive mass-entry" id="pointsEarned">+850</div>
     <div class="total">Total: <strong id="totalScore">0</strong></div>
-    <p style="margin-top: 30px; color: var(--text-muted); font-size: 0.95em;">
+
+    <!-- South Indian style reaction card -->
+    <div class="reaction-card" id="reactionCard" style="display:none;">
+      <span class="reaction-emoji" id="reactionEmoji">🐐</span>
+      <div class="reaction-text" id="reactionText">GOAT-level answer machi!</div>
+    </div>
+
+    <p style="margin-top: 20px; color: var(--text-muted); font-size: 0.95em;">
       Look at the projector for the leaderboard...
     </p>
   </div>
@@ -111,17 +118,19 @@
 
 <!-- ============== FINAL ============== -->
 <section id="screenFinal" class="screen-section" style="display:none">
-  <div class="player-result">
-    <div class="big-emoji" id="finalEmoji">🏆</div>
-    <h1 style="font-size: 2.2em; margin-bottom: 12px;" id="finalTitle">Game Over!</h1>
-    <p style="font-size: 1.2em; color: var(--text-muted); margin-bottom: 25px;">
-      Your rank: <strong style="color: var(--text); font-size: 1.5em;" id="finalRank">#1</strong>
+  <div class="sun-rays"></div>
+  <div class="player-result" style="position: relative; z-index: 2;">
+    <div class="score-meme-img hero-entry" id="finalMemeImg"></div>
+    <h1 class="mass-title hero-entry" style="font-size: 2.4em; margin-bottom: 12px;" id="finalTitle">Game Over!</h1>
+    <p class="punch-dialogue" id="finalTagline" style="font-style: italic; color: var(--text-muted); margin-bottom: 20px; font-size: 1.05em; line-height: 1.4;"></p>
+    <p style="font-size: 1.2em; color: var(--text-muted); margin-bottom: 15px;">
+      Your rank: <strong class="mass-title" style="font-size: 1.8em;" id="finalRank">#1</strong>
     </p>
-    <div class="points-earned positive" id="finalScore">0</div>
+    <div class="points-earned positive mass-entry" id="finalScore">0</div>
     <p style="color: var(--text-muted);">total points</p>
 
-    <button class="btn btn-primary btn-xl" style="margin-top: 30px;" onclick="window.location.href='/'">
-      🏠 Back Home
+    <button class="btn btn-mass btn-xl" style="margin-top: 30px;" onclick="window.location.href='/'">
+      🏠 Once more vaa?
     </button>
   </div>
 </section>
@@ -142,6 +151,7 @@
 <div class="toast-container" id="toasts"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="south-memes.js"></script>
 <script src="player.js"></script>
 
 </body>

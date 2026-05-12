@@ -176,18 +176,18 @@
 
 <!-- ============== SCREEN 5: FINAL ============== -->
 <section id="screenFinal" class="screen-section" style="display:none">
-  <div class="podium-stage container">
-    <h1 class="gradient-text">🏆 Final Results</h1>
-    <p style="font-size: 1.2em; color: var(--text-muted); margin-bottom: 30px;">
-      Great game everyone!
+  <div class="podium-stage boss-mode container">
+    <h1 class="mass-title punch-dialogue" style="font-size: 3em;">🏆 GRAND FINALE 🏆</h1>
+    <p style="font-size: 1.3em; color: var(--mass-gold); margin-bottom: 30px; font-style: italic;">
+      Vetri kanindhavanga! Class-la avlo mass!
     </p>
 
     <div class="podium" id="podium"></div>
     <div class="leaderboard" id="finalLeaderboard"></div>
 
     <div style="margin-top: 40px;">
-      <button class="btn btn-primary btn-xl" onclick="window.location.reload()">
-        🔁 New Game
+      <button class="btn btn-mass btn-xl" onclick="window.location.reload()">
+        🔁 Once More Vaa
       </button>
       <button class="btn btn-secondary" onclick="window.location.href='/'" style="margin-left:10px;">
         🏠 Home
@@ -199,8 +199,15 @@
 <canvas id="confettiCanvas"></canvas>
 <div class="toast-container" id="toasts"></div>
 
+<!-- Title card overlay (shown on game start) -->
+<div id="titleCard" class="title-card-overlay" style="display:none">
+  <div class="title-card-text">DATA QUIZ</div>
+  <div class="title-card-sub">— A MASS PRODUCTION —</div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="south-memes.js"></script>
 <script src="host.js"></script>
 
 </body>

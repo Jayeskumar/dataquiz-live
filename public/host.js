@@ -105,7 +105,16 @@ function showLobby() {
 //   Game flow
 // =====================================================
 function startGame() {
-  socket.emit('host:start');
+  // Show the title card overlay for ~3 seconds before the first question
+  const card = document.getElementById('titleCard');
+  if (card) {
+    card.style.display = 'flex';
+    card.style.animation = 'none';
+    void card.offsetWidth;
+    card.style.animation = '';
+    setTimeout(() => { card.style.display = 'none'; }, 3000);
+  }
+  setTimeout(() => socket.emit('host:start'), 600);
 }
 
 function nextQuestion() {
@@ -207,15 +216,15 @@ socket.on('room:reveal', (data) => {
   document.getElementById('rText').textContent = q.q;
   document.getElementById('rExplanation').textContent = data.explanation;
 
-  // Vote bars
+  // Vote bars with mass entry
   const maxVotes = Math.max(1, ...data.votes);
   const shapes = ['▲', '◆', '●', '■'];
   document.getElementById('rVoteBars').innerHTML = q.options.map((opt, i) => {
     const votes = data.votes[i] || 0;
     const pct = Math.round((votes / maxVotes) * 100);
-    const correctClass = i === data.correct ? 'correct' : '';
+    const correctClass = i === data.correct ? 'correct glow-pulse' : '';
     return `
-      <div class="vote-bar-row c-${i} ${correctClass}">
+      <div class="vote-bar-row c-${i} ${correctClass} hero-entry" style="animation-delay: ${i * 0.1}s;">
         <div class="vote-bar-fill" style="width: ${pct}%;"></div>
         <div class="vote-bar-content">
           <span style="font-size: 1.3em;">${shapes[i] || '◯'}</span>
@@ -229,35 +238,118 @@ socket.on('room:reveal', (data) => {
   // Leaderboard
   renderLeaderboard('revealLeaderboard', data.leaderboard);
 
-  if (data.leaderboard.length > 0 && data.perPlayer.some(p => p.isCorrect)) {
-    confetti(40);
+  // Celebrate based on how the class did
+  const correctCount = data.perPlayer.filter(p => p.isCorrect).length;
+  const total = data.perPlayer.length;
+  if (total > 0) {
+    const correctPct = correctCount / total;
+    if (correctPct >= 0.8) {
+      // Class crushed it - mass celebration
+      rosePetalConfetti(50);
+      showHostToast('🔥 Class-uh mass machi!', 'success');
+    } else if (correctPct >= 0.5) {
+      confetti(40);
+      showHostToast('💪 Solid round!', 'success');
+    } else if (correctPct === 0) {
+      showHostToast('😭 Avana yaaru? — Yarum correct illa!', 'error');
+    }
   }
 });
+
+function showHostToast(msg, type) {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || '');
+  t.style.fontFamily = "'Impact', sans-serif";
+  t.style.letterSpacing = '2px';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
 
 socket.on('room:end', (data) => {
   stopTimer();
   showScreen('screenFinal');
 
   const lb = data.leaderboard;
-  // Build podium for top 3
   const podiumEl = document.getElementById('podium');
-  const podiumOrder = []; // [silver(2), gold(1), bronze(3)]
-  if (lb[1]) podiumOrder.push({ p: lb[1], cls: 'second',  block: 'silver', n: 2, crown: '🥈' });
-  if (lb[0]) podiumOrder.push({ p: lb[0], cls: 'first',   block: 'gold',   n: 1, crown: '👑' });
-  if (lb[2]) podiumOrder.push({ p: lb[2], cls: 'third',   block: 'bronze', n: 3, crown: '🥉' });
+  const podiumOrder = []; // visual order: 2nd, 1st, 3rd
+  if (lb[1]) podiumOrder.push({ p: lb[1], cls: 'second hero-entry', block: 'silver', n: 2, crown: '🥈', label: 'Vice Champion' });
+  if (lb[0]) podiumOrder.push({ p: lb[0], cls: 'first  hero-entry', block: 'gold',   n: 1, crown: '👑', label: 'THALAPATHY' });
+  if (lb[2]) podiumOrder.push({ p: lb[2], cls: 'third  hero-entry', block: 'bronze', n: 3, crown: '🥉', label: 'Top 3' });
+
   podiumEl.innerHTML = podiumOrder.map(s => `
     <div class="podium-spot ${s.cls}">
       <div class="crown">${s.crown}</div>
       <div class="ply-name">${escapeHTML(s.p.name)}</div>
+      <div style="font-size: 0.85em; color: var(--mass-gold); font-style: italic; margin-bottom: 4px;">${s.label}</div>
       <div class="ply-score">${s.p.score}</div>
-      <div class="podium-block ${s.block}">${s.n}</div>
+      <div class="podium-block ${s.block} ${s.n === 1 ? 'glow-pulse' : ''}">${s.n}</div>
     </div>
   `).join('');
 
   renderLeaderboard('finalLeaderboard', lb.slice(3));
 
+  // Massive celebration
   bigConfetti();
+  rosePetalConfetti(150);
+  setTimeout(() => rosePetalConfetti(100), 1000);
+  setTimeout(() => bigConfetti(), 1800);
+  document.body.classList.add('screen-shake');
+  setTimeout(() => document.body.classList.remove('screen-shake'), 600);
 });
+
+// Rose petal confetti
+function rosePetalConfetti(n) {
+  const canvas = document.getElementById('confettiCanvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#dc2626', '#b91c1c', '#991b1b', '#7c2d12', '#ef4444'];
+  const ps = [];
+  for (let i = 0; i < (n || 60); i++) {
+    ps.push({
+      x: Math.random() * canvas.width,
+      y: -20,
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 3 + 1.5,
+      size: Math.random() * 8 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      rot: Math.random() * 360,
+      rs: (Math.random() - 0.5) * 6,
+      sway: Math.random() * 2 + 1,
+      swayPhase: Math.random() * Math.PI * 2,
+      life: 320
+    });
+  }
+  function drawPetal(ctx, x, y, size, rot, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot * Math.PI / 180);
+    const grad = ctx.createLinearGradient(0, -size, 0, size);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, '#7c2d12');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.5, size * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  function step() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ps.forEach((p, i) => {
+      p.x += p.vx + Math.sin(p.swayPhase) * p.sway;
+      p.y += p.vy;
+      p.swayPhase += 0.05;
+      p.rot += p.rs;
+      p.life--;
+      drawPetal(ctx, p.x, p.y, p.size, p.rot, p.color);
+      if (p.life <= 0 || p.y > canvas.height + 20) ps.splice(i, 1);
+    });
+    if (ps.length > 0) requestAnimationFrame(step);
+  }
+  step();
+}
 
 socket.on('host:error', ({ msg }) => {
   showToast(msg, 'error');
