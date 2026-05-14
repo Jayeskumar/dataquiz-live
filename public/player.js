@@ -25,7 +25,13 @@ if (savedCode && savedName) {
 // =====================================================
 function showScreen(id) {
   document.querySelectorAll('.screen-section').forEach(s => s.style.display = 'none');
-  document.getElementById(id).style.display = 'block';
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  currentScreen = id;
+  // Trigger smooth fade
+  el.classList.remove('screen-fade-in');
+  void el.offsetWidth;
+  el.classList.add('screen-fade-in');
 }
 
 // =====================================================
@@ -57,6 +63,10 @@ function join() {
 // =====================================================
 //   Submit answer
 // =====================================================
+let answeredTimer = null;       // pending setTimeout for screenAnswered
+let currentScreen = 'screenJoining';
+let resultReceived = false;     // true after player:result fires for the active Q
+
 function submitAnswer(idx) {
   if (myAnswer !== null) return;
   myAnswer = idx;
@@ -69,13 +79,21 @@ function submitAnswer(idx) {
     if (i !== idx) b.classList.add('dimmed');
   });
 
+  // Button tap feedback
+  buttons[idx].classList.add('tapped');
+  playSound('tap');
+
   socket.emit('player:answer', { answer: idx });
 
-  // Show waiting screen
-  setTimeout(() => {
+  // Show waiting screen — but only if reveal hasn't already arrived
+  if (answeredTimer) clearTimeout(answeredTimer);
+  answeredTimer = setTimeout(() => {
+    answeredTimer = null;
+    // Don't override the result screen if it has already shown
+    if (resultReceived) return;
     document.getElementById('yourAnswer').textContent = opt;
     showScreen('screenAnswered');
-  }, 400);
+  }, 350);
 }
 
 // =====================================================
@@ -84,6 +102,8 @@ function submitAnswer(idx) {
 socket.on('room:question', (q) => {
   currentQuestion = q;
   myAnswer = null;
+  resultReceived = false;
+  if (answeredTimer) { clearTimeout(answeredTimer); answeredTimer = null; }
   playSound('whoosh');
   document.getElementById('aProgress').textContent = `${q.index + 1} / ${q.total}`;
 
@@ -104,10 +124,12 @@ socket.on('room:question', (q) => {
 let myStreak = 0;
 
 socket.on('player:result', (res) => {
+  resultReceived = true;
+  if (answeredTimer) { clearTimeout(answeredTimer); answeredTimer = null; }
   stopTimer();
   myScore = res.score;
-  document.getElementById('topbarScore').textContent = myScore;
-  document.getElementById('totalScore').textContent = myScore;
+  animateNumber('topbarScore', myScore);
+  animateNumber('totalScore', myScore);
 
   const verdict = document.getElementById('resultVerdict');
   const emoji = document.getElementById('resultEmoji');
@@ -129,6 +151,11 @@ socket.on('player:result', (res) => {
     verdict.className = 'verdict correct punch-dialogue';
     pts.textContent = '+' + res.lastPoints;
     pts.className = 'points-earned positive mass-entry';
+
+    // Floating +points indicator
+    floatXP('+' + res.lastPoints, window.innerWidth / 2, window.innerHeight / 2);
+    // Sparkle burst trail
+    sparkleBurst(5);
 
     // South Indian reaction
     const reaction = window.SI_MEMES.pickCorrect();
@@ -274,6 +301,57 @@ function stopTimer() {
 //   Helpers
 // =====================================================
 function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Floating "+850" XP indicator
+function floatXP(text, x, y) {
+  const el = document.createElement('div');
+  el.className = 'float-xp';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1700);
+}
+
+// Sparkle burst — emoji firework
+function sparkleBurst(n) {
+  const emojis = ['✨', '⭐', '🌟', '💫', '⚡'];
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  for (let i = 0; i < (n || 8); i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle-burst';
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const angle = (Math.PI * 2 * i) / (n || 8);
+    s.style.left = (cx + Math.cos(angle) * 60) + 'px';
+    s.style.top = (cy + Math.sin(angle) * 60) + 'px';
+    s.style.animationDelay = (i * 0.05) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1400);
+  }
+}
+
+// Animated number counter (counts from old → new over ~700ms)
+const _animNumberState = {};
+function animateNumber(elId, target, duration) {
+  duration = duration || 800;
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const start = _animNumberState[elId] !== undefined
+    ? _animNumberState[elId]
+    : (parseInt(el.textContent) || 0);
+  const t0 = performance.now();
+  function step(t) {
+    const p = Math.min(1, (t - t0) / duration);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const val = Math.round(start + (target - start) * eased);
+    el.textContent = val;
+    if (p < 1) requestAnimationFrame(step);
+    else _animNumberState[elId] = target;
+  }
+  _animNumberState[elId] = target;
+  requestAnimationFrame(step);
+}
 
 function showToast(msg, type) {
   const t = document.createElement('div');
