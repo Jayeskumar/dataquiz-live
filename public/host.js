@@ -140,6 +140,7 @@ function showScreen(id) {
 // =====================================================
 //   Socket listeners
 // =====================================================
+let prevPlayerIds = new Set();
 socket.on('room:players', (players) => {
   playersById = new Map(players.map(p => [p.id, p]));
   const list = document.getElementById('playersList');
@@ -150,22 +151,39 @@ socket.on('room:players', (players) => {
     list.style.display = 'none';
     if (empty) empty.style.display = 'block';
     document.getElementById('startBtn').disabled = true;
+    prevPlayerIds.clear();
     return;
   }
   list.style.display = 'grid';
   if (empty) empty.style.display = 'none';
   document.getElementById('startBtn').disabled = false;
 
-  list.innerHTML = players.map(p => `
-    <div class="player-chip">
-      <div class="avatar">${escapeHTML(p.name[0].toUpperCase())}</div>
-      <div>${escapeHTML(p.name)}</div>
-    </div>
-  `).join('');
+  const currentIds = new Set(players.map(p => p.id));
+  const newJoins = players.filter(p => !prevPlayerIds.has(p.id));
+
+  list.innerHTML = players.map(p => {
+    const isNew = !prevPlayerIds.has(p.id);
+    return `
+      <div class="player-chip ${isNew ? 'new-join' : ''}">
+        <div class="avatar">${escapeHTML(p.name[0].toUpperCase())}</div>
+        <div>${escapeHTML(p.name)}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Sound on new joiners (but not initial render)
+  if (newJoins.length > 0 && prevPlayerIds.size > 0) {
+    playSound('chime');
+  } else if (newJoins.length > 0 && prevPlayerIds.size === 0) {
+    // First player joins — soft chime
+    playSound('chime');
+  }
+  prevPlayerIds = currentIds;
 });
 
 socket.on('room:question', (q) => {
   currentQuestion = q;
+  playSound('whoosh');
   showScreen('screenQuestion');
 
   document.getElementById('qModule').textContent = q.moduleName;
@@ -208,6 +226,8 @@ socket.on('host:playerAnswered', ({ answeredCount, totalPlayers }) => {
 
 socket.on('room:reveal', (data) => {
   stopTimer();
+  playSound('drumroll');
+  setTimeout(() => playSound('reveal'), 800);
   showScreen('screenReveal');
 
   const q = currentQuestion;
@@ -291,12 +311,14 @@ socket.on('room:end', (data) => {
   renderLeaderboard('finalLeaderboard', lb.slice(3));
 
   // Massive celebration
+  playSound('fanfare');
+  setTimeout(() => playSound('applause'), 800);
   bigConfetti();
   rosePetalConfetti(150);
   setTimeout(() => rosePetalConfetti(100), 1000);
   setTimeout(() => bigConfetti(), 1800);
-  document.body.classList.add('screen-shake');
-  setTimeout(() => document.body.classList.remove('screen-shake'), 600);
+  document.body.classList.add('screen-shake', 'boss-flash');
+  setTimeout(() => document.body.classList.remove('screen-shake', 'boss-flash'), 1500);
 });
 
 // Rose petal confetti
@@ -363,6 +385,8 @@ socket.on('connect_error', () => showToast('Connection lost', 'error'));
 function renderLeaderboard(containerId, entries) {
   const el = document.getElementById(containerId);
   if (!entries || entries.length === 0) { el.innerHTML = ''; return; }
+  el.className = (el.className || '').replace(/\bstagger-in\b/g, '').trim() + ' stagger-in';
+  // Re-trigger stagger animation
   el.innerHTML = entries.map(e => `
     <div class="leaderboard-row rank-${e.rank}">
       <div class="rank">#${e.rank}</div>
@@ -381,11 +405,13 @@ function renderLeaderboard(containerId, entries) {
 function startTimer(duration) {
   const ring = document.getElementById('ringFg');
   const text = document.getElementById('ringText');
+  const timerRing = ring.closest('.timer-ring');
   let remaining = duration;
   text.textContent = remaining;
   ring.style.strokeDashoffset = '0';
   ring.style.transition = 'none';
   ring.classList.remove('warning', 'danger');
+  timerRing && timerRing.classList.remove('last-five');
 
   // Force reflow then begin animation
   void ring.getBoundingClientRect();
@@ -396,8 +422,13 @@ function startTimer(duration) {
   timerInterval = setInterval(() => {
     remaining--;
     text.textContent = Math.max(0, remaining);
-    if (remaining <= 5) ring.classList.add('danger');
-    else if (remaining <= 10) ring.classList.add('warning');
+    if (remaining <= 5 && remaining > 0) {
+      ring.classList.add('danger');
+      timerRing && timerRing.classList.add('last-five');
+      playSound('tickLow');
+    } else if (remaining <= 10) {
+      ring.classList.add('warning');
+    }
     if (remaining <= 0) clearInterval(timerInterval);
   }, 1000);
 }
@@ -421,6 +452,74 @@ function showToast(msg, type) {
   t.textContent = msg;
   document.getElementById('toasts').appendChild(t);
   setTimeout(() => t.remove(), 3500);
+}
+
+// =====================================================
+//   Sound (Web Audio API — no files needed)
+// =====================================================
+let audioCtx;
+function _ctx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function _tone(freq, dur, opts = {}) {
+  const ctx = _ctx();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = opts.wave || 'sine';
+  o.frequency.setValueAtTime(freq, ctx.currentTime);
+  if (opts.glide) o.frequency.exponentialRampToValueAtTime(opts.glide, ctx.currentTime + dur);
+  g.gain.setValueAtTime(opts.gain || 0.15, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  o.start(); o.stop(ctx.currentTime + dur);
+}
+function _noise(dur, opts = {}) {
+  const ctx = _ctx();
+  const bufferSize = ctx.sampleRate * dur;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource(); src.buffer = buffer;
+  const g = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = opts.filterType || 'bandpass';
+  filter.frequency.value = opts.freq || 1000;
+  filter.Q.value = opts.Q || 1;
+  src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+  g.gain.setValueAtTime(opts.gain || 0.12, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  src.start(); src.stop(ctx.currentTime + dur);
+}
+function playSound(type) {
+  try {
+    if (type === 'chime') {
+      _tone(1568, 0.4, { gain: 0.1 });
+      setTimeout(() => _tone(2093, 0.3, { gain: 0.06 }), 60);
+    } else if (type === 'whoosh') {
+      _noise(0.4, { filterType: 'lowpass', freq: 600, gain: 0.08 });
+    } else if (type === 'drumroll') {
+      for (let i = 0; i < 18; i++) {
+        setTimeout(() => _tone(70, 0.04, { wave: 'sawtooth', gain: 0.15 }), i * 60);
+      }
+    } else if (type === 'reveal') {
+      _tone(523, 0.15, { gain: 0.12 });
+      setTimeout(() => _tone(659, 0.15, { gain: 0.12 }), 100);
+      setTimeout(() => _tone(784, 0.3, { gain: 0.15 }), 200);
+    } else if (type === 'applause') {
+      _noise(1.5, { filterType: 'bandpass', freq: 1500, Q: 0.5, gain: 0.1 });
+      setTimeout(() => _noise(1.0, { filterType: 'bandpass', freq: 2500, gain: 0.08 }), 300);
+    } else if (type === 'fanfare') {
+      // Final winning fanfare
+      const seq = [392, 523, 659, 784, 988, 1047];
+      seq.forEach((f, i) => setTimeout(() => _tone(f, 0.4, { wave: 'triangle', gain: 0.15 }), i * 120));
+      setTimeout(() => _noise(1.2, { filterType: 'highpass', freq: 4000, gain: 0.06 }), seq.length * 120);
+    } else if (type === 'tick') {
+      _tone(1400, 0.05, { wave: 'square', gain: 0.06 });
+    } else if (type === 'tickLow') {
+      _tone(800, 0.04, { wave: 'square', gain: 0.04 });
+    }
+  } catch (e) {}
 }
 
 // Confetti

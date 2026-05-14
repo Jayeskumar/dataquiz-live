@@ -49,6 +49,7 @@ function join() {
     document.getElementById('waitingCode').textContent = code;
     document.getElementById('topbarName').textContent = name;
     document.getElementById('topbar').style.display = 'block';
+    playSound('chime');
     showScreen('screenWaiting');
   });
 }
@@ -83,6 +84,7 @@ function submitAnswer(idx) {
 socket.on('room:question', (q) => {
   currentQuestion = q;
   myAnswer = null;
+  playSound('whoosh');
   document.getElementById('aProgress').textContent = `${q.index + 1} / ${q.total}`;
 
   // Render answer buttons (only — text is on the projector)
@@ -239,11 +241,13 @@ document.getElementById('nameInput').addEventListener('keypress', e => {
 function startTimer(duration) {
   const ring = document.getElementById('pRingFg');
   const text = document.getElementById('pRingText');
+  const timerRing = ring.closest('.timer-ring');
   let remaining = duration;
   text.textContent = remaining;
   ring.style.strokeDashoffset = '0';
   ring.style.transition = 'none';
   ring.classList.remove('warning', 'danger');
+  timerRing && timerRing.classList.remove('last-five');
   void ring.getBoundingClientRect();
   ring.style.transition = `stroke-dashoffset ${duration}s linear, stroke 0.3s`;
   ring.style.strokeDashoffset = '283';
@@ -252,8 +256,13 @@ function startTimer(duration) {
   timerInterval = setInterval(() => {
     remaining--;
     text.textContent = Math.max(0, remaining);
-    if (remaining <= 5) ring.classList.add('danger');
-    else if (remaining <= 10) ring.classList.add('warning');
+    if (remaining <= 5 && remaining > 0) {
+      ring.classList.add('danger');
+      timerRing && timerRing.classList.add('last-five');
+      if (myAnswer === null) playSound('tick');
+    } else if (remaining <= 10) {
+      ring.classList.add('warning');
+    }
     if (remaining <= 0) clearInterval(timerInterval);
   }, 1000);
 }
@@ -275,47 +284,104 @@ function showToast(msg, type) {
 }
 
 let audioCtx;
+function _ctx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+// Generic tone helper
+function _tone(freq, dur, opts = {}) {
+  const ctx = _ctx();
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.connect(g);
+  if (opts.filter) {
+    const bp = ctx.createBiquadFilter();
+    bp.type = opts.filter;
+    bp.frequency.value = freq;
+    g.connect(bp);
+    bp.connect(ctx.destination);
+  } else {
+    g.connect(ctx.destination);
+  }
+  o.type = opts.wave || 'sine';
+  o.frequency.setValueAtTime(freq, ctx.currentTime);
+  if (opts.glide) o.frequency.exponentialRampToValueAtTime(opts.glide, ctx.currentTime + dur);
+  g.gain.setValueAtTime(opts.gain || 0.15, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  o.start();
+  o.stop(ctx.currentTime + dur);
+}
+
+// White noise burst (for applause/whoosh)
+function _noise(dur, opts = {}) {
+  const ctx = _ctx();
+  const bufferSize = ctx.sampleRate * dur;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const g = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = opts.filterType || 'bandpass';
+  filter.frequency.value = opts.freq || 1000;
+  filter.Q.value = opts.Q || 1;
+  src.connect(filter);
+  filter.connect(g);
+  g.connect(ctx.destination);
+  g.gain.setValueAtTime(opts.gain || 0.12, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  src.start();
+  src.stop(ctx.currentTime + dur);
+}
+
 function playSound(type) {
   try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.connect(g); g.connect(audioCtx.destination);
-    const now = audioCtx.currentTime;
+    const ctx = _ctx();
+    const now = ctx.currentTime;
     if (type === 'correct') {
-      o.frequency.setValueAtTime(800, now);
-      o.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-      g.gain.setValueAtTime(0.15, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      o.start(now); o.stop(now + 0.3);
+      _tone(800, 0.3, { wave: 'sine', glide: 1200 });
+      _tone(1200, 0.25, { wave: 'triangle', gain: 0.08 });
     } else if (type === 'wrong') {
-      o.frequency.setValueAtTime(200, now);
-      o.frequency.exponentialRampToValueAtTime(100, now + 0.2);
-      g.gain.setValueAtTime(0.15, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      o.start(now); o.stop(now + 0.3);
+      _tone(200, 0.3, { wave: 'square', glide: 100, gain: 0.12 });
     } else if (type === 'win') {
-      [523, 659, 784, 1047].forEach((f, i) => {
-        const oo = audioCtx.createOscillator();
-        const gg = audioCtx.createGain();
-        oo.connect(gg); gg.connect(audioCtx.destination);
-        oo.frequency.setValueAtTime(f, now + i * 0.1);
-        gg.gain.setValueAtTime(0.15, now + i * 0.1);
-        gg.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
-        oo.start(now + i * 0.1); oo.stop(now + i * 0.1 + 0.3);
+      // Triumphant arpeggio
+      [523, 659, 784, 1047, 1319].forEach((f, i) => {
+        setTimeout(() => _tone(f, 0.35, { wave: 'triangle', gain: 0.15 }), i * 100);
       });
+      // Cymbal-ish noise
+      setTimeout(() => _noise(0.8, { filterType: 'highpass', freq: 4000, gain: 0.06 }), 500);
     } else if (type === 'combo') {
-      // Cinematic punch: low boom + high sparkle
-      [200, 250, 600, 800].forEach((f, i) => {
-        const oo = audioCtx.createOscillator();
-        const gg = audioCtx.createGain();
-        oo.connect(gg); gg.connect(audioCtx.destination);
-        oo.type = i < 2 ? 'sawtooth' : 'sine';
-        oo.frequency.setValueAtTime(f, now + i * 0.05);
-        gg.gain.setValueAtTime(0.12, now + i * 0.05);
-        gg.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.4);
-        oo.start(now + i * 0.05); oo.stop(now + i * 0.05 + 0.4);
-      });
+      // Cinematic punch
+      _tone(80,  0.6, { wave: 'sawtooth', gain: 0.18, glide: 40 });
+      setTimeout(() => _tone(1200, 0.3, { wave: 'sine', gain: 0.12 }), 80);
+      setTimeout(() => _noise(0.3, { filterType: 'bandpass', freq: 2000, gain: 0.08 }), 0);
+    } else if (type === 'tick') {
+      // Short urgent tick
+      _tone(1400, 0.05, { wave: 'square', gain: 0.08 });
+    } else if (type === 'whoosh') {
+      // Filter sweep noise
+      _noise(0.35, { filterType: 'lowpass', freq: 800, gain: 0.1 });
+    } else if (type === 'chime') {
+      // Bright bell - join sound
+      _tone(1568, 0.4, { wave: 'sine', gain: 0.12 });
+      setTimeout(() => _tone(2093, 0.3, { wave: 'sine', gain: 0.08 }), 60);
+    } else if (type === 'drumroll') {
+      // Rumbling rolling drum
+      for (let i = 0; i < 16; i++) {
+        setTimeout(() => _tone(60, 0.04, { wave: 'sawtooth', gain: 0.18 }), i * 50);
+      }
+    } else if (type === 'applause') {
+      // Sustained noise = crowd
+      _noise(1.2, { filterType: 'bandpass', freq: 1500, Q: 0.5, gain: 0.1 });
+      setTimeout(() => _noise(0.8, { filterType: 'bandpass', freq: 2500, Q: 0.5, gain: 0.08 }), 200);
+    } else if (type === 'six') {
+      // Cricket-six celebration: low boom + ascending
+      _tone(80, 0.4, { wave: 'sawtooth', glide: 30, gain: 0.16 });
+      setTimeout(() => {
+        [659, 880, 1318].forEach((f, i) => setTimeout(() => _tone(f, 0.25, { wave: 'triangle', gain: 0.12 }), i * 90));
+      }, 100);
     }
   } catch (e) {}
 }
