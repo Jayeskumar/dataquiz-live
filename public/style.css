@@ -1,5 +1,5 @@
 /* =====================================================
-   DataQuiz Multiplayer — shared stylesheet
+   quizX — shared stylesheet
    ===================================================== */
 
 :root {
@@ -1172,69 +1172,54 @@ h1, h2, h3 { font-weight: 800; line-height: 1.2; }
 .podium-block.bronze { box-shadow: 0 0 25px rgba(205, 127, 50, 0.5); }
 
 /* =====================================================
-   College Branding
+   quizX Wordmark / Brand
    ===================================================== */
-.college-footer {
-  position: fixed;
-  bottom: 0;
+.brand-wordmark {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(4em, 12vw, 7em);
+  letter-spacing: -3px;
+  line-height: 1;
+  display: inline-block;
+  color: #ffffff;
+  text-shadow: 0 4px 30px rgba(99, 102, 241, 0.4);
+}
+.brand-wordmark .brand-x {
+  background: linear-gradient(135deg, #fbbf24 0%, #ec4899 50%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-style: italic;
+  position: relative;
+}
+.brand-wordmark .brand-x::after {
+  content: '';
+  position: absolute;
+  bottom: 0.05em;
   left: 0;
   right: 0;
-  text-align: center;
-  padding: 8px 16px;
-  background: linear-gradient(90deg, rgba(220, 38, 38, 0.4), rgba(251, 191, 36, 0.4), rgba(220, 38, 38, 0.4));
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-top: 1px solid rgba(251, 191, 36, 0.4);
-  font-size: 0.82em;
-  font-weight: 600;
-  letter-spacing: 1px;
-  color: #fde047;
-  z-index: 40;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-.college-footer strong {
-  color: #fff;
-  font-weight: 800;
+  height: 4px;
+  background: linear-gradient(90deg, #fbbf24, #ec4899, #6366f1);
+  border-radius: 2px;
+  opacity: 0.5;
+  filter: blur(2px);
 }
 
-.college-stamp {
-  position: absolute;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 28px;
-  border: 2px solid #fde047;
-  border-radius: 50px;
-  color: #fde047;
-  font-family: 'Impact', sans-serif;
-  font-size: clamp(0.85em, 2vw, 1.1em);
-  letter-spacing: 3px;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  z-index: 3;
-  animation: stamp-pop 1s 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-  text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+/* Wordmark inside the title card (during gameplay) */
+.brand-wordmark-card {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
+  letter-spacing: -3px !important;
+  font-weight: 900 !important;
+  background: none !important;
+  -webkit-text-fill-color: white !important;
+  color: white !important;
 }
-
-.title-card-foot {
-  position: absolute;
-  bottom: 12%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(251, 191, 36, 0.85);
-  font-size: 1em;
-  letter-spacing: 2px;
+.brand-wordmark-card .brand-x {
+  background: linear-gradient(135deg, #fbbf24, #ec4899, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-style: italic;
-  z-index: 3;
-  animation: stamp-pop 1s 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes stamp-pop {
-  0% { opacity: 0; transform: translateX(-50%) scale(0.5); }
-  100% { opacity: 1; transform: translateX(-50%) scale(1); }
 }
 
 /* =====================================================
@@ -1399,64 +1384,11 @@ h1, h2, h3 { font-weight: 800; line-height: 1.2; }
    ★★★ NEW ANIMATION PACK ★★★
    ===================================================== */
 
-/* College badge on landing */
-.college-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 24px;
-  margin-top: 25px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(220, 38, 38, 0.1));
-  border: 2px solid rgba(251, 191, 36, 0.4);
-  border-radius: 16px;
-  text-align: left;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  animation: badge-float 4s ease-in-out infinite;
-}
-@keyframes badge-float {
-  0%, 100% { transform: translateY(0); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
-  50% { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(251, 191, 36, 0.25); }
-}
-.college-badge-icon {
-  font-size: 2.4em;
-  filter: drop-shadow(0 4px 10px rgba(251, 191, 36, 0.5));
-}
-.college-badge-label {
-  font-size: 0.75em;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 2px;
-}
-.college-badge-name {
-  font-weight: 800;
-  font-size: 1.15em;
-  color: #fde047;
-  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
-}
-.college-badge-loc {
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-/* Title card college line */
-.title-card-college {
-  position: absolute;
-  bottom: 18%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  font-size: 1.05em;
-  letter-spacing: 2px;
-  color: #fde047;
-  text-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-align: center;
-  animation: stamp-pop 1s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Hover lift for cards */
+.card { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s; }
+.card.card-tilt:hover {
+  transform: translateY(-8px) perspective(1000px) rotateX(2deg);
+  box-shadow: 0 30px 80px rgba(99, 102, 241, 0.3);
 }
 
 /* Shimmer text effect */

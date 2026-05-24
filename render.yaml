@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dataquiz-multiplayer
+    name: quizx
     runtime: node
     plan: free
     buildCommand: npm install

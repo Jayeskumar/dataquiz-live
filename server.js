@@ -1,6 +1,6 @@
 // =====================================================
-//   DataQuiz Multiplayer Server
-//   Node + Express + Socket.io — real-time classroom game
+//   quizX — Multiplayer Quiz Server
+//   Node + Express + Socket.io — Kahoot-style game
 // =====================================================
 
 const express = require('express');
@@ -470,6 +470,6 @@ app.get('/healthz', (_req, res) => {
 // =====================================================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`\n  🧠 DataQuiz Multiplayer running`);
+  console.log(`\n  ⚡ quizX server running`);
   console.log(`  http://localhost:${PORT}\n`);
 });

@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClassQuiz Live · Multiplayer Classroom Quizzes</title>
+<title>quizX — Multiplayer Quiz, Live</title>
+<meta name="description" content="quizX — Real-time multiplayer quiz platform. Host on a big screen, players join on their phones.">
 <link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 </head>
 <body>
 
@@ -15,42 +16,30 @@
   <div style="max-width: 900px; width: 100%;">
 
     <div style="text-align: center; margin-bottom: 40px;" class="fade-in">
-      <div style="font-size: 5em; margin-bottom: 10px;" class="mass-entry">🎮</div>
-      <h1 style="font-size: 3.5em; margin-bottom: 10px;">
-        <span class="mass-title shimmer-text" style="font-size: 1em;">CLASSQUIZ LIVE</span>
-      </h1>
-      <p style="font-size: 1.3em; color: var(--mass-gold); font-style: italic;">
-        Real-time classroom multiplayer trivia
-      </p>
-      <p style="opacity: 0.7; margin-top: 8px;">
-        📺 Project to big screen · 📱 Students play on phones · 🏆 Live leaderboard · 🎉 Fun memes
-      </p>
-      <div class="college-badge fade-in" style="animation-delay: 0.6s;">
-        <div class="college-badge-icon">🎓</div>
-        <div>
-          <div class="college-badge-label">A Classroom Quiz App for</div>
-          <div class="college-badge-name">Vidyavardhaka College of Engineering</div>
-          <div class="college-badge-loc">Mysore, Karnataka</div>
-        </div>
+      <div class="brand-wordmark mass-entry">
+        quiz<span class="brand-x">X</span>
       </div>
+      <p style="font-size: 1.25em; opacity: 0.85; margin-top: 4px;">
+        Multiplayer quiz, live.
+      </p>
+      <p style="opacity: 0.6; margin-top: 12px; font-size: 0.95em;">
+        🖥️ Host on the big screen · 📱 Players join on their phones · 🏆 Live leaderboard
+      </p>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;" class="fade-in" id="choices">
 
-      <div class="card" style="text-align: center; cursor: pointer; transition: transform 0.3s;"
-           onmouseover="this.style.transform='translateY(-8px)'"
-           onmouseout="this.style.transform='translateY(0)'"
-           onclick="goHost()">
-        <div style="font-size: 5em; margin-bottom: 15px;">🎓</div>
+      <div class="card card-tilt" style="text-align: center; cursor: pointer;" onclick="goHost()">
+        <div style="font-size: 5em; margin-bottom: 15px;">🎯</div>
         <h2 style="font-size: 1.8em; margin-bottom: 12px;">Host a Game</h2>
         <p style="color: var(--text-muted); margin-bottom: 22px;">
-          You're the teacher. Pick a module, share the code, project it.
+          Pick a quiz, share the code, project to a big screen.
         </p>
         <button class="btn btn-primary btn-xl btn-block">Create Room →</button>
       </div>
 
       <div class="card" style="text-align: center;">
-        <div style="font-size: 5em; margin-bottom: 15px;">🎯</div>
+        <div style="font-size: 5em; margin-bottom: 15px;">🚀</div>
         <h2 style="font-size: 1.8em; margin-bottom: 12px;">Join a Game</h2>
         <p style="color: var(--text-muted); margin-bottom: 18px;">
           Got a game code? Enter it below.
@@ -62,23 +51,15 @@
 
     </div>
 
-    <div class="college-badge fade-in" style="margin-top: 40px; text-align: center;">
-      <div style="display: inline-flex; align-items: center; gap: 12px; padding: 14px 24px; background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(251, 191, 36, 0.1)); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 50px; backdrop-filter: blur(10px);">
-        <span style="font-size: 1.6em;">🎓</span>
-        <div style="text-align: left;">
-          <div style="font-size: 0.75em; opacity: 0.7; letter-spacing: 1.5px; text-transform: uppercase;">Presented by</div>
-          <div style="font-weight: 800; font-size: 1.05em; color: var(--mass-gold);">Vidyavardhaka College of Engineering</div>
-          <div style="font-size: 0.8em; opacity: 0.8;">📍 Mysuru, Karnataka</div>
-        </div>
-      </div>
+    <div style="margin-top: 35px; text-align: center;">
+      <a href="/create.html" class="btn btn-secondary" style="font-size: 0.95em;">
+        📝 Create Your Own Quiz
+      </a>
     </div>
 
-    <div style="margin-top: 25px; text-align: center; opacity: 0.6;">
+    <div style="margin-top: 50px; text-align: center; opacity: 0.5;">
       <p style="font-size: 0.85em;">
-        No install needed · Works on any device · Project & play 🎮
-      </p>
-      <p style="font-size: 0.8em; margin-top: 6px;">
-        ClassQuiz Live · Vidyavardhaka College of Engineering · Mysuru 🇮🇳
+        No install needed · Works on any device · Free forever
       </p>
     </div>
 
