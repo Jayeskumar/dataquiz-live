@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Quiz · ClassQuiz Live</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="container" style="max-width: 900px;">
+
+  <a class="back" href="/" style="display:inline-block; padding: 8px 18px; background: var(--surface); border: 1px solid var(--border); color: var(--text); text-decoration: none; border-radius: 8px; margin-bottom: 20px;">← Back</a>
+
+  <div style="text-align: center; margin-bottom: 30px;">
+    <div style="font-size: 4em; margin-bottom: 10px;">📝</div>
+    <h1 style="font-size: 2.5em; margin-bottom: 8px;" class="gradient-text shimmer-text">Create a Quiz</h1>
+    <p style="color: var(--text-muted);">Build your own quiz from scratch — or import a JSON file</p>
+  </div>
+
+  <!-- Quiz metadata -->
+  <div class="card" style="margin-bottom: 20px;">
+    <h2 style="margin-bottom: 15px;">Quiz Details</h2>
+
+    <label style="display: block; font-size: 0.85em; color: var(--text-muted); margin-bottom: 4px;">Title *</label>
+    <input class="input" id="quizTitle" placeholder="e.g. SQL Basics" maxlength="80">
+
+    <label style="display: block; font-size: 0.85em; color: var(--text-muted); margin: 14px 0 4px;">Description</label>
+    <input class="input" id="quizDesc" placeholder="Short description of the quiz" maxlength="200">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+      <div>
+        <label style="display: block; font-size: 0.85em; color: var(--text-muted); margin-bottom: 4px;">Emoji</label>
+        <input class="input" id="quizEmoji" placeholder="📚" maxlength="4" value="📚" style="font-size: 1.6em; text-align: center;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85em; color: var(--text-muted); margin-bottom: 4px;">Theme</label>
+        <select id="quizTheme" class="input" style="height: 56px;">
+          <option value="linear-gradient(135deg, #6366f1, #ec4899)">Purple → Pink</option>
+          <option value="linear-gradient(135deg, #f59e0b, #ef4444)">Amber → Red</option>
+          <option value="linear-gradient(135deg, #10b981, #06b6d4)">Green → Cyan</option>
+          <option value="linear-gradient(135deg, #3b82f6, #8b5cf6)">Blue → Violet</option>
+          <option value="linear-gradient(135deg, #f97316, #fbbf24)">Orange → Gold</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Questions -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2>Questions <span style="color: var(--text-muted); font-weight: normal; font-size: 0.7em;">(<span id="qCount">0</span> added · min 3)</span></h2>
+      <button class="btn btn-primary" onclick="addQuestion()">＋ Add Question</button>
+    </div>
+
+    <div id="questionsContainer"></div>
+
+    <div id="emptyHint" style="text-align: center; padding: 40px; color: var(--text-muted); border: 2px dashed var(--border); border-radius: 12px;">
+      <div style="font-size: 3em; margin-bottom: 10px;">📋</div>
+      <p>No questions yet. Click <strong>＋ Add Question</strong> to start.</p>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+    <button class="btn btn-primary btn-xl" onclick="saveQuiz()">💾 Save Quiz</button>
+    <button class="btn btn-secondary" onclick="exportJSON()">📤 Export JSON</button>
+    <label class="btn btn-secondary" for="importInput" style="cursor: pointer;">
+      📥 Import JSON
+      <input type="file" id="importInput" accept=".json" style="display: none;" onchange="importJSON(event)">
+    </label>
+    <button class="btn btn-secondary" onclick="loadTemplate()">📋 Load Template</button>
+  </div>
+
+  <div style="margin-top: 40px; text-align: center; opacity: 0.55;">
+    <p style="font-size: 0.85em;">Quizzes are saved on the server and available to all hosts immediately.</p>
+  </div>
+
+</div>
+
+<footer class="college-footer">
+  🎓 <strong>Vidyavardhaka College of Engineering</strong> · Mysuru · ClassQuiz Live
+</footer>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- Question template -->
+<template id="qTemplate">
+  <div class="question-block" data-q>
+    <div class="question-header">
+      <span class="q-number">Q<span class="q-num">1</span></span>
+      <select data-difficulty class="input" style="width: auto; padding: 6px 12px; font-size: 0.85em;">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button class="btn-icon" data-remove title="Remove this question">×</button>
+    </div>
+
+    <label style="display: block; font-size: 0.8em; color: var(--text-muted); margin: 10px 0 4px;">Question *</label>
+    <textarea data-question class="input" rows="2" placeholder="e.g. What is the time complexity of binary search?"></textarea>
+
+    <label style="display: block; font-size: 0.8em; color: var(--text-muted); margin: 10px 0 4px;">Code block (optional)</label>
+    <textarea data-code class="input" rows="3" placeholder="(optional) Code snippet shown below the question" style="font-family: Consolas, monospace; font-size: 0.9em;"></textarea>
+
+    <label style="display: block; font-size: 0.8em; color: var(--text-muted); margin: 10px 0 4px;">Options * (mark the correct one)</label>
+    <div class="options-list">
+      <div class="option-row"><input type="radio" name="" data-correct value="0"><input data-opt class="input" placeholder="Option A"></div>
+      <div class="option-row"><input type="radio" name="" data-correct value="1"><input data-opt class="input" placeholder="Option B"></div>
+      <div class="option-row"><input type="radio" name="" data-correct value="2"><input data-opt class="input" placeholder="Option C"></div>
+      <div class="option-row"><input type="radio" name="" data-correct value="3"><input data-opt class="input" placeholder="Option D"></div>
+    </div>
+
+    <label style="display: block; font-size: 0.8em; color: var(--text-muted); margin: 10px 0 4px;">Explanation (shown after reveal)</label>
+    <textarea data-exp class="input" rows="2" placeholder="Why this answer is correct"></textarea>
+  </div>
+</template>
+
+<style>
+  .question-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+    animation: chip-join 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .question-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .q-number {
+    font-weight: 800;
+    font-size: 1.2em;
+    color: var(--mass-gold);
+    background: rgba(251, 191, 36, 0.15);
+    padding: 4px 12px;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+  }
+  .btn-icon {
+    margin-left: auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    cursor: pointer;
+    font-size: 1.4em;
+    font-weight: bold;
+    transition: all 0.3s;
+  }
+  .btn-icon:hover { background: rgba(239, 68, 68, 0.4); transform: scale(1.1); }
+  .options-list { display: grid; gap: 8px; }
+  .option-row {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .option-row input[type="radio"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  textarea.input { resize: vertical; font-family: inherit; }
+</style>
+
+<script>
+let qCounter = 0;
+
+function addQuestion(data) {
+  qCounter++;
+  const tpl = document.getElementById('qTemplate');
+  const node = tpl.content.cloneNode(true);
+  const block = node.querySelector('[data-q]');
+  block.dataset.id = qCounter;
+  block.querySelector('.q-num').textContent = qCounter;
+
+  // Unique radio group name per question
+  block.querySelectorAll('[data-correct]').forEach((r, i) => {
+    r.name = 'correct-' + qCounter;
+  });
+  block.querySelector('[data-remove]').onclick = () => {
+    block.remove();
+    renumber();
+    refreshCount();
+  };
+
+  if (data) {
+    block.querySelector('[data-question]').value = data.q || '';
+    block.querySelector('[data-code]').value = data.code || '';
+    block.querySelector('[data-exp]').value = data.exp || '';
+    block.querySelector('[data-difficulty]').value = data.difficulty || 'medium';
+    const opts = block.querySelectorAll('[data-opt]');
+    (data.options || []).forEach((o, i) => { if (opts[i]) opts[i].value = o; });
+    const radios = block.querySelectorAll('[data-correct]');
+    if (typeof data.correct === 'number' && radios[data.correct]) radios[data.correct].checked = true;
+  }
+
+  document.getElementById('questionsContainer').appendChild(block);
+  refreshCount();
+}
+
+function renumber() {
+  document.querySelectorAll('[data-q]').forEach((b, i) => {
+    b.querySelector('.q-num').textContent = i + 1;
+  });
+}
+
+function refreshCount() {
+  const n = document.querySelectorAll('[data-q]').length;
+  document.getElementById('qCount').textContent = n;
+  document.getElementById('emptyHint').style.display = n === 0 ? 'block' : 'none';
+}
+
+function collectQuiz() {
+  const blocks = document.querySelectorAll('[data-q]');
+  const questions = [];
+  blocks.forEach(b => {
+    const q = b.querySelector('[data-question]').value.trim();
+    const code = b.querySelector('[data-code]').value.trim();
+    const exp = b.querySelector('[data-exp]').value.trim();
+    const difficulty = b.querySelector('[data-difficulty]').value;
+    const options = Array.from(b.querySelectorAll('[data-opt]'))
+      .map(o => o.value.trim()).filter(Boolean);
+    const checked = b.querySelector('[data-correct]:checked');
+    const correct = checked ? parseInt(checked.value) : 0;
+    if (q && options.length >= 2) {
+      questions.push({ q, code: code || undefined, options, correct, difficulty, exp });
+    }
+  });
+  return {
+    title: document.getElementById('quizTitle').value.trim(),
+    description: document.getElementById('quizDesc').value.trim(),
+    emoji: document.getElementById('quizEmoji').value.trim() || '📚',
+    color: document.getElementById('quizTheme').value,
+    questions
+  };
+}
+
+async function saveQuiz() {
+  const quiz = collectQuiz();
+  if (!quiz.title) return showToast('Title is required', 'error');
+  if (quiz.questions.length < 3) return showToast('Add at least 3 questions', 'error');
+
+  try {
+    const res = await fetch('/api/quizzes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quiz)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const errMsg = (data.errors || [data.error || 'Save failed']).join('; ');
+      return showToast(errMsg, 'error');
+    }
+    showToast('✓ Quiz saved! Redirecting to host...', 'success');
+    setTimeout(() => window.location.href = '/host.html', 1200);
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'error');
+  }
+}
+
+function exportJSON() {
+  const quiz = collectQuiz();
+  const blob = new Blob([JSON.stringify(quiz, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (quiz.title || 'quiz').toLowerCase().replace(/\W+/g, '-') + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Exported', 'success');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      document.getElementById('quizTitle').value = data.title || '';
+      document.getElementById('quizDesc').value = data.description || '';
+      if (data.emoji) document.getElementById('quizEmoji').value = data.emoji;
+      // Clear existing
+      document.getElementById('questionsContainer').innerHTML = '';
+      qCounter = 0;
+      (data.questions || []).forEach(q => addQuestion(q));
+      showToast(`✓ Imported "${data.title}"`, 'success');
+    } catch (err) {
+      showToast('Failed to parse JSON: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+async function loadTemplate() {
+  const choice = prompt('Load which template? Type: python, dsa, or paste a quiz ID');
+  if (!choice) return;
+  let id = choice.toLowerCase().trim();
+  if (id === 'python') id = 'tpl-python';
+  if (id === 'dsa' || id === 'java') id = 'tpl-dsa-java';
+  try {
+    const res = await fetch('/api/quizzes/' + encodeURIComponent(id));
+    if (!res.ok) return showToast('Template not found', 'error');
+    const data = await res.json();
+    document.getElementById('quizTitle').value = data.title + ' (Copy)';
+    document.getElementById('quizDesc').value = data.description || '';
+    if (data.emoji) document.getElementById('quizEmoji').value = data.emoji;
+    document.getElementById('questionsContainer').innerHTML = '';
+    qCounter = 0;
+    data.questions.forEach(q => addQuestion(q));
+    showToast(`✓ Loaded "${data.title}" — edit and save as your own`, 'success');
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || '');
+  t.textContent = msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Particles
+function initParticles() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random() * 40 + 20;
+    p.style.width = s + 'px';
+    p.style.height = s + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 15 + 's';
+    c.appendChild(p);
+  }
+}
+initParticles();
+
+// Start with 3 empty question blocks
+addQuestion(); addQuestion(); addQuestion();
+</script>
+
+</body>
+</html>

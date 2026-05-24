@@ -7,11 +7,7 @@ const express = require('express');
 const http = require('http');
 const path = require('path');
 const { Server } = require('socket.io');
-const {
-  MODULES,
-  getRandomQuestions,
-  moduleCounts
-} = require('./questions');
+const Quizzes = require('./quizzes/library');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,10 +16,39 @@ const io = new Server(server, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json({ limit: '500kb' }));
 
-// Expose module info to clients
-app.get('/api/modules', (_req, res) => {
-  res.json({ modules: MODULES, counts: moduleCounts() });
+// =====================================================
+//   Quiz REST API
+// =====================================================
+
+// List all quizzes (templates + custom)
+app.get('/api/quizzes', (_req, res) => {
+  res.json({ quizzes: Quizzes.listSummaries() });
+});
+
+// Get one quiz (without correct answers in raw form — for editing only)
+app.get('/api/quizzes/:id', (req, res) => {
+  const q = Quizzes.getById(req.params.id);
+  if (!q) return res.status(404).json({ error: 'Not found' });
+  res.json(q);
+});
+
+// Create a new custom quiz
+app.post('/api/quizzes', (req, res) => {
+  const result = Quizzes.createCustom(req.body);
+  if (!result.ok) return res.status(400).json({ errors: result.errors });
+  res.json({ ok: true, quiz: { id: result.quiz.id, title: result.quiz.title } });
+});
+
+// Delete a custom quiz
+app.delete('/api/quizzes/:id', (req, res) => {
+  const q = Quizzes.getById(req.params.id);
+  if (!q) return res.status(404).json({ error: 'Not found' });
+  if (q.isTemplate) return res.status(403).json({ error: 'Cannot delete template' });
+  const result = Quizzes.deleteCustom(req.params.id);
+  if (!result.ok) return res.status(400).json(result);
+  res.json({ ok: true });
 });
 
 // =====================================================
@@ -56,7 +81,7 @@ class Room {
     this.hostId = hostId;
     this.players = new Map(); // socketId -> player
     this.questions = options.questions;
-    this.moduleKey = options.moduleKey;
+    this.quiz = options.quiz; // full quiz metadata { id, title, emoji, color, ... }
     this.timerSeconds = options.timerSeconds || 20;
     this.currentIndex = -1;
     this.state = 'lobby';            // lobby | question | reveal | finished
@@ -128,9 +153,10 @@ class Room {
     return {
       index: this.currentIndex,
       total: this.questions.length,
-      moduleKey: q.module,
-      moduleName: MODULES[q.module]?.name || q.module,
-      difficulty: q.difficulty,
+      quizId: this.quiz.id,
+      quizTitle: this.quiz.title,
+      quizEmoji: this.quiz.emoji,
+      difficulty: q.difficulty || 'medium',
       q: q.q,
       code: q.code || null,
       options: q.options,
@@ -235,29 +261,38 @@ io.on('connection', (socket) => {
 
   // ---------- HOST: create room ----------
   socket.on('host:create', (opts, cb) => {
-    const moduleKey = opts.moduleKey || 'all';
-    const count = Math.max(3, Math.min(20, opts.count || 10));
+    const quizId = opts.quizId;
+    if (!quizId) return cb && cb({ ok: false, error: 'No quiz selected' });
+
+    const quiz = Quizzes.getById(quizId);
+    if (!quiz) return cb && cb({ ok: false, error: 'Quiz not found' });
+
+    const count = Math.max(3, Math.min(quiz.questions.length, opts.count || 10));
     const timerSeconds = Math.max(10, Math.min(60, opts.timer || 20));
 
-    const questions = getRandomQuestions(count, moduleKey);
+    const questions = Quizzes.getRandomQuestions(quizId, count);
     if (questions.length === 0) {
-      return cb && cb({ ok: false, error: 'No questions available' });
+      return cb && cb({ ok: false, error: 'No questions in this quiz' });
     }
 
     const code = generateRoomCode();
-    const room = new Room(code, socket.id, { questions, moduleKey, timerSeconds });
+    const room = new Room(code, socket.id, {
+      questions,
+      quiz: { id: quiz.id, title: quiz.title, emoji: quiz.emoji, color: quiz.color },
+      timerSeconds
+    });
     rooms.set(code, room);
 
     socket.join(code);
     socket.data.role = 'host';
     socket.data.roomCode = code;
 
-    console.log(`[room ${code}] created — module=${moduleKey} count=${questions.length}`);
+    console.log(`[room ${code}] created — quiz=${quiz.title} count=${questions.length}`);
     cb && cb({
       ok: true,
       code,
       questionCount: questions.length,
-      moduleKey,
+      quizTitle: quiz.title,
       timerSeconds
     });
   });

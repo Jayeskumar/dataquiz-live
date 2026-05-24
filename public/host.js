@@ -3,7 +3,8 @@
 // =====================================================
 
 const socket = io();
-let selectedModule = 'all';
+let selectedQuizId = null;
+let selectedQuizMaxQ = 10;
 let roomCode = null;
 let timerInterval = null;
 let timerSeconds = 20;
@@ -11,61 +12,99 @@ let currentQuestion = null;
 let playersById = new Map();
 
 // =====================================================
-//   Initialize: load modules
+//   Initialize: load available quizzes
 // =====================================================
-async function loadModules() {
+async function loadQuizzes() {
   try {
-    const res = await fetch('/api/modules');
+    const res = await fetch('/api/quizzes');
     const data = await res.json();
     const grid = document.getElementById('moduleGrid');
-
-    // "All" tile first
-    const totalCount = Object.values(data.counts).reduce((a, b) => a + b, 0);
     grid.innerHTML = '';
-    const allTile = document.createElement('div');
-    allTile.className = 'module-pick selected';
-    allTile.dataset.key = 'all';
-    allTile.innerHTML = `
-      <div class="mod-emoji">🎲</div>
-      <div class="mod-name">Mix of All</div>
-      <div class="mod-count">${totalCount} Q</div>
-    `;
-    allTile.onclick = () => selectModule('all', allTile);
-    grid.appendChild(allTile);
 
-    Object.entries(data.modules).forEach(([key, mod]) => {
+    if (!data.quizzes || data.quizzes.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+          <div style="font-size: 3em; margin-bottom: 12px;">📋</div>
+          <p>No quizzes available. Click <strong>Create New Quiz</strong> below.</p>
+        </div>`;
+      return;
+    }
+
+    data.quizzes.forEach((quiz, idx) => {
       const tile = document.createElement('div');
       tile.className = 'module-pick';
-      tile.dataset.key = key;
+      if (idx === 0) tile.classList.add('selected');
+      tile.dataset.id = quiz.id;
+      tile.style.background = quiz.color || 'var(--surface)';
       tile.innerHTML = `
-        <div class="mod-emoji">${mod.emoji}</div>
-        <div class="mod-name">${mod.name}</div>
-        <div class="mod-count">${data.counts[key]} Q</div>
+        <div class="mod-emoji">${quiz.emoji || '📝'}</div>
+        <div class="mod-name">${escapeHTML(quiz.title)}</div>
+        <div class="mod-count">${quiz.questionCount} Q ${quiz.isTemplate ? '· Template' : '· Custom'}</div>
+        ${!quiz.isTemplate ? `<button class="quiz-del" onclick="event.stopPropagation(); deleteQuiz('${quiz.id}', '${escapeAttr(quiz.title)}')" title="Delete">×</button>` : ''}
       `;
-      tile.onclick = () => selectModule(key, tile);
+      tile.onclick = () => selectQuiz(quiz.id, quiz.questionCount, tile);
       grid.appendChild(tile);
+
+      // Auto-select the first quiz
+      if (idx === 0) {
+        selectedQuizId = quiz.id;
+        selectedQuizMaxQ = quiz.questionCount;
+        updateCountOptions(quiz.questionCount);
+      }
     });
   } catch (e) {
-    console.error('Failed to load modules', e);
+    console.error('Failed to load quizzes', e);
   }
 }
 
-function selectModule(key, el) {
-  selectedModule = key;
+function selectQuiz(id, maxQ, el) {
+  selectedQuizId = id;
+  selectedQuizMaxQ = maxQ;
   document.querySelectorAll('.module-pick').forEach(t => t.classList.remove('selected'));
   el.classList.add('selected');
+  updateCountOptions(maxQ);
+}
+
+function updateCountOptions(max) {
+  const sel = document.getElementById('settingCount');
+  if (!sel) return;
+  const current = parseInt(sel.value) || 10;
+  sel.innerHTML = '';
+  const choices = [5, 10, 15, 20, 30].filter(n => n <= max);
+  if (choices.length === 0) choices.push(max);
+  choices.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = `${n} questions (~${Math.round(n * 0.6)} min)`;
+    if (n === current || (current > max && n === choices[choices.length - 1])) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function deleteQuiz(id, title) {
+  if (!confirm(`Delete quiz "${title}"? This cannot be undone.`)) return;
+  try {
+    const res = await fetch('/api/quizzes/' + encodeURIComponent(id), { method: 'DELETE' });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      return showToast(e.error || 'Failed to delete', 'error');
+    }
+    showToast('✓ Quiz deleted', 'success');
+    await loadQuizzes();
+  } catch (e) { showToast('Network error', 'error'); }
 }
 
 // =====================================================
 //   Create Room
 // =====================================================
 function createRoom() {
+  if (!selectedQuizId) return showToast('Please pick a quiz first', 'error');
   const count = parseInt(document.getElementById('settingCount').value);
   const timer = parseInt(document.getElementById('settingTimer').value);
   timerSeconds = timer;
 
   socket.emit('host:create',
-    { moduleKey: selectedModule, count, timer },
+    { quizId: selectedQuizId, count, timer },
     (resp) => {
       if (!resp || !resp.ok) {
         showToast(resp?.error || 'Failed to create room', 'error');
@@ -76,6 +115,8 @@ function createRoom() {
     }
   );
 }
+
+function escapeAttr(s) { return String(s).replace(/'/g, '&#39;').replace(/"/g, '&quot;'); }
 
 function showLobby() {
   showScreen('screenLobby');
@@ -186,7 +227,7 @@ socket.on('room:question', (q) => {
   playSound('whoosh');
   showScreen('screenQuestion');
 
-  document.getElementById('qModule').textContent = q.moduleName;
+  document.getElementById('qModule').textContent = q.quizTitle;
   const diff = document.getElementById('qDifficulty');
   diff.textContent = q.difficulty.toUpperCase();
   diff.className = 'tag difficulty ' + q.difficulty;
@@ -231,7 +272,7 @@ socket.on('room:reveal', (data) => {
   showScreen('screenReveal');
 
   const q = currentQuestion;
-  document.getElementById('rModule').textContent = q.moduleName;
+  document.getElementById('rModule').textContent = q.quizTitle;
   document.getElementById('rProgress').textContent = `${q.index + 1} / ${q.total}`;
   document.getElementById('rText').textContent = q.q;
   document.getElementById('rExplanation').textContent = data.explanation;
@@ -584,4 +625,4 @@ function bigConfetti() {
 })();
 
 // Boot
-loadModules();
+loadQuizzes();

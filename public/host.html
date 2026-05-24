@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Host · DataQuiz Live</title>
+<title>Host · ClassQuiz Live</title>
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
 </head>
@@ -22,7 +22,10 @@
         Pick a topic and game settings, then share the room code with the class
       </p>
 
-      <h3 style="margin-bottom: 12px;">Topic</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+        <h3>Pick a Quiz</h3>
+        <a href="/create.html" class="btn btn-secondary" style="font-size:0.9em; padding: 8px 16px;">📝 Create New Quiz</a>
+      </div>
       <div class="module-grid" id="moduleGrid"></div>
 
       <div class="settings-row">
@@ -201,7 +204,7 @@
 
 <!-- Persistent footer -->
 <footer class="college-footer">
-  🎓 <strong>Vidyavardhaka College of Engineering</strong> · Mysuru · Data Analysis Class
+  🎓 <strong>Vidyavardhaka College of Engineering</strong> · Mysuru · ClassQuiz Live
 </footer>
 
 <!-- Title card overlay (shown on game start) -->
@@ -210,9 +213,9 @@
     <span style="font-size: 1.4em;">🎓</span>
     <span>VIDYAVARDHAKA COLLEGE OF ENGINEERING · MYSURU</span>
   </div>
-  <div class="title-card-text">DATA QUIZ</div>
+  <div class="title-card-text">CLASSQUIZ</div>
   <div class="title-card-sub">CLASSROOM LIVE EDITION</div>
-  <div class="title-card-foot">— Presented by the Data Analysis Mastery Course —</div>
+  <div class="title-card-foot">— Vidyavardhaka College of Engineering · Mysuru —</div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
